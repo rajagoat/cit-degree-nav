@@ -10,6 +10,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
+import Image from "next/image"
+import CitLogo from "@/public/cit-logo.png"
 
 // Menu items.
 const items = [
@@ -34,6 +36,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar variant="floating" >
+      <Image src={CitLogo} alt="CIT Logo" priority/>
       <h1 className="text-white text-3xl font-semibold text-center py-2">
         Navigation
       </h1>
