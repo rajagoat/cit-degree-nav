@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import UserHeader from "@/components/user-header"
 
 export default async function MainLayout({
     children,
@@ -15,8 +16,11 @@ export default async function MainLayout({
     return (
         <SidebarProvider defaultOpen={defaultOpen}>
             <AppSidebar />
-            <main>
-                <SidebarTrigger />
+            <main className="flex flex-col flex-1 mr-5">
+                <div className="flex justify-between items-center pt-3">
+                    <SidebarTrigger />
+                    <UserHeader />
+                </div>
                 {children}
             </main>
         </SidebarProvider>
