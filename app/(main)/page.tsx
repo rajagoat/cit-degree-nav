@@ -10,8 +10,8 @@ export default function Home() {
   return (
     <main>
       <div className="bg-[url(/mountain-range.jpg)] rounded-2xl mt-10">
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4 p-4">
-          <Card className="col-span-2">
+        <div className="grid grid-cols-2 gap-4 p-4 ">
+          <Card className="col-span-full lg:max-w-4/5">
             <CardHeader className="flex flex-col sm:flex-row">
               <div className="flex-1">
                 <CardDescription>Name</CardDescription>
