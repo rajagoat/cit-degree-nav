@@ -9,9 +9,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+interface Course {
+  courseCode: string;
+  courseName: string;
+  prerequisites: string[];
+  info: string;
+}
+
 export default function Home() {
   // State for modal display
-  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState(null as Course | null);
 
   // Sample recommended courses data with multiple prerequisites
   const recommendedCourses = [
@@ -35,7 +42,7 @@ export default function Home() {
     },
   ];
 
-  const openModal = (course) => {
+  const openModal = (course: Course) => {
     setSelectedCourse(course);
   };
 
