@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import CircularProgress from "@/components/circular-progress";
 
 interface Course {
   courseCode: string;
@@ -17,6 +18,11 @@ interface Course {
 }
 
 export default function Home() {
+  const [credits, setCredits] = useState(0)
+  const [classes, setClasses] = useState(0)
+  const totalCredits = 120
+  const totalClasses = Math.floor(totalCredits / 3)
+
   // State for modal display
   const [selectedCourse, setSelectedCourse] = useState(null as Course | null);
 
@@ -50,13 +56,26 @@ export default function Home() {
     setSelectedCourse(null);
   };
 
+  // Animate the progress on initial load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCredits(30)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    setClasses(Math.floor(credits / 3))
+  }, [credits])
+
   return (
     <main>
       {/* Main Header Section */}
       <div className="bg-[url(/mountain-range.jpg)] rounded-2xl mt-10 p-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 xl:max-w-[80%]">
           {/* Student Info Card */}
-          <Card className="col-span-full lg:max-w-4/5">
+          <Card className="col-span-full">
             <CardHeader className="flex flex-col sm:flex-row">
               <div className="flex-1">
                 <CardDescription>Name</CardDescription>
@@ -116,15 +135,19 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          {/* Progress Tracker in its original location */}
-          <div>
-            <p>Progress Tracker</p>
-          </div>
+          <CircularProgress
+            currentValue={credits}
+            totalValue={totalCredits}
+            additionalInfo={[
+              { label: "Credits", current: credits, total: totalCredits },
+              { label: "Classes", current: classes, total: totalClasses },
+            ]}
+          />
         </div>
       </div>
 
       {/* Recommended Courses Section */}
-      <div className="mt-6">
+      <div className="my-6">
         {/* Big bubble background color */}
         <Card style={{ backgroundColor: "#4E8098" }} className="text-white">
           <CardHeader>
