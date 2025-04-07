@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 import CitLogo from "@/public/cit-logo.png"
-import SignUpImage from "@/public/signup-photo.jpg"
+import SignupImage from "@/public/signup-photo.jpg"
 
 // Form validation schema
 const signupSchema = z.object({
@@ -21,14 +21,14 @@ const signupSchema = z.object({
     password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 })
 
-type LoginFormValues = z.infer<typeof signupSchema>
+type SignupFormValues = z.infer<typeof signupSchema>
 
 export default function SignUp() {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
 
     // Initialize form with react-hook-form
-    const form = useForm<LoginFormValues>({
+    const form = useForm<SignupFormValues>({
         resolver: zodResolver(signupSchema),
         defaultValues: {
             email: "",
@@ -37,7 +37,7 @@ export default function SignUp() {
     })
 
     // Handle form submission
-    async function onSubmit(data: LoginFormValues) {
+    async function onSubmit(/* data: SignupFormValues */) {
         setIsLoading(true)
 
         try {
@@ -53,7 +53,8 @@ export default function SignUp() {
                 router.push("/")
             }, 1500)
         } catch (error) {
-            toast.error("Login failed", {
+            console.error("Sign up error:", error)
+            toast.error("Sign up failed", {
                 description: "Please check your credentials and try again.",
             })
         } finally {
@@ -143,7 +144,7 @@ export default function SignUp() {
                         <div className="hidden lg:block">
                             <div className="relative h-full w-full">
                                 <Image
-                                    src={SignUpImage}
+                                    src={SignupImage}
                                     alt="CIT Student studying"
                                     width={1000}
                                     height={800}
