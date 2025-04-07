@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -8,6 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import CircularProgress from "@/components/circular-progress";
+import { useAuth } from "@/context/AuthContext";
 
 interface Course {
   courseCode: string;
@@ -17,6 +19,37 @@ interface Course {
 }
 
 export default function Home() {
+  const { user } = useAuth();
+
+  const calculateTotalCreditsRequired = () => {
+    const primaryCreditsRequired = user?.data.primaryDegree.creditsRequired || 0;
+    const secondaryCreditsRequired = user?.data.additionalDegree?.creditsRequired || 0;
+    return primaryCreditsRequired + secondaryCreditsRequired;
+  };
+
+  const calculateTotalCreditsCompleted = () => {
+    const primaryCreditsCompleted = user?.data.primaryDegree.creditsCompleted || 0;
+    const secondaryCreditsCompleted = user?.data.additionalDegree?.creditsCompleted || 0;
+    return primaryCreditsCompleted + secondaryCreditsCompleted;
+  };
+
+  const [credits, setCredits] = useState(0);
+  const [totalCredits, setTotalCredits] = useState(0)
+  const [classes, setClasses] = useState(0)
+  const [totalClasses, setTotalClasses] = useState(0)
+
+  useEffect(() => {
+    const completed = calculateTotalCreditsCompleted();
+    const required = calculateTotalCreditsRequired();
+    const calculatedClasses = Math.floor(completed / 3);
+    const totalClasses = Math.floor(required / 3);
+
+    setCredits(completed);
+    setTotalCredits(required);
+    setClasses(calculatedClasses);
+    setTotalClasses(totalClasses);
+  }, [user]);
+
   // State for modal display
   const [selectedCourse, setSelectedCourse] = useState(null as Course | null);
 
@@ -54,20 +87,20 @@ export default function Home() {
     <main>
       {/* Main Header Section */}
       <div className="bg-[url(/mountain-range.jpg)] rounded-2xl mt-10 p-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 xl:max-w-[80%]">
           {/* Student Info Card */}
-          <Card className="col-span-full lg:max-w-4/5">
+          <Card className="col-span-full">
             <CardHeader className="flex flex-col sm:flex-row">
               <div className="flex-1">
                 <CardDescription>Name</CardDescription>
                 <CardTitle className="text-md pt-1 text-[var(--primary)]">
-                  John Smith
+                  {user?.name}
                 </CardTitle>
               </div>
               <div className="flex-1">
                 <CardDescription>UID</CardDescription>
                 <CardTitle className="text-md pt-1 text-[var(--primary)]">
-                  12345678
+                  {user?.id}
                 </CardTitle>
               </div>
             </CardHeader>
@@ -75,19 +108,21 @@ export default function Home() {
               <div className="flex-1">
                 <CardDescription>Degree Major</CardDescription>
                 <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  Computer Science
+                  {user?.data.primaryDegree.name}
                 </p>
               </div>
-              <div className="flex-1">
-                <CardDescription>Degree Minor</CardDescription>
-                <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  Mathematics
-                </p>
-              </div>
+              {user?.data.additionalDegree && (
+                <div className="flex-1">
+                  <CardDescription>Degree {user?.data.additionalDegree.type}</CardDescription>
+                  <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
+                    {user?.data.additionalDegree.name}
+                  </p>
+                </div>
+              )}
               <div className="flex-1">
                 <CardDescription>Current GPA</CardDescription>
                 <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  3.8
+                  {user?.cgpa ? user.cgpa.toFixed(2) : "N/A"}
                 </p>
               </div>
             </CardContent>
@@ -104,27 +139,31 @@ export default function Home() {
               <div className="flex-1">
                 <CardDescription>Credits Completed</CardDescription>
                 <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  75
+                  {credits}
                 </p>
               </div>
               <div className="flex-1">
                 <CardDescription>Credits Remaining</CardDescription>
                 <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  45
+                  {totalCredits - credits}
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Progress Tracker in its original location */}
-          <div>
-            <p>Progress Tracker</p>
-          </div>
+          {totalCredits !== 0 && <CircularProgress
+            currentValue={credits}
+            totalValue={totalCredits}
+            additionalInfo={[
+              { label: "Credits", current: credits, total: totalCredits },
+              { label: "Classes", current: classes, total: totalClasses },
+            ]}
+          />}
         </div>
       </div>
 
       {/* Recommended Courses Section */}
-      <div className="mt-6">
+      <div className="my-6">
         {/* Big bubble background color */}
         <Card style={{ backgroundColor: "#4E8098" }} className="text-white">
           <CardHeader>
