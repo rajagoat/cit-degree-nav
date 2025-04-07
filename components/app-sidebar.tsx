@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useAuth } from "@/context/AuthContext"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from 'next/navigation'
@@ -37,6 +38,7 @@ const items = [
 ]
 
 export function AppSidebar() {
+  const { logout } = useAuth()
   const pathname = usePathname()
   const initialActiveItem = items.find((item) => item.url === pathname)?.title || items[0].title;
   const [activeItem, setActiveItem] = useState<string>(initialActiveItem);
@@ -72,7 +74,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenuButton asChild className="bg-white text-[#A31621] font-bold mb-3 px-3">
-          <Link href={`/login`}>
+          <Link onClick={logout} href={`/login`}>
             <LogOut />
             <span>{`Sign Out`}</span>
           </Link>

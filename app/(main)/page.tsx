@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import CircularProgress from "@/components/circular-progress";
+import { useAuth } from "@/context/AuthContext";
 
 interface Course {
   courseCode: string;
@@ -18,10 +19,36 @@ interface Course {
 }
 
 export default function Home() {
-  const [credits, setCredits] = useState(0)
+  const { user } = useAuth();
+
+  const calculateTotalCreditsRequired = () => {
+    const primaryCreditsRequired = user?.data.primaryDegree.creditsRequired || 0;
+    const secondaryCreditsRequired = user?.data.additionalDegree?.creditsRequired || 0;
+    return primaryCreditsRequired + secondaryCreditsRequired;
+  };
+
+  const calculateTotalCreditsCompleted = () => {
+    const primaryCreditsCompleted = user?.data.primaryDegree.creditsCompleted || 0;
+    const secondaryCreditsCompleted = user?.data.additionalDegree?.creditsCompleted || 0;
+    return primaryCreditsCompleted + secondaryCreditsCompleted;
+  };
+
+  const [credits, setCredits] = useState(0);
+  const [totalCredits, setTotalCredits] = useState(0)
   const [classes, setClasses] = useState(0)
-  const totalCredits = 120
-  const totalClasses = Math.floor(totalCredits / 3)
+  const [totalClasses, setTotalClasses] = useState(0)
+
+  useEffect(() => {
+    const completed = calculateTotalCreditsCompleted();
+    const required = calculateTotalCreditsRequired();
+    const calculatedClasses = Math.floor(completed / 3);
+    const totalClasses = Math.floor(required / 3);
+
+    setCredits(completed);
+    setTotalCredits(required);
+    setClasses(calculatedClasses);
+    setTotalClasses(totalClasses);
+  }, [user]);
 
   // State for modal display
   const [selectedCourse, setSelectedCourse] = useState(null as Course | null);
@@ -56,19 +83,6 @@ export default function Home() {
     setSelectedCourse(null);
   };
 
-  // Animate the progress on initial load
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCredits(30)
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
-    setClasses(Math.floor(credits / 3))
-  }, [credits])
-
   return (
     <main>
       {/* Main Header Section */}
@@ -80,13 +94,13 @@ export default function Home() {
               <div className="flex-1">
                 <CardDescription>Name</CardDescription>
                 <CardTitle className="text-md pt-1 text-[var(--primary)]">
-                  John Smith
+                  {user?.name}
                 </CardTitle>
               </div>
               <div className="flex-1">
                 <CardDescription>UID</CardDescription>
                 <CardTitle className="text-md pt-1 text-[var(--primary)]">
-                  12345678
+                  {user?.id}
                 </CardTitle>
               </div>
             </CardHeader>
@@ -94,19 +108,21 @@ export default function Home() {
               <div className="flex-1">
                 <CardDescription>Degree Major</CardDescription>
                 <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  Computer Science
+                  {user?.data.primaryDegree.name}
                 </p>
               </div>
-              <div className="flex-1">
-                <CardDescription>Degree Minor</CardDescription>
-                <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  Mathematics
-                </p>
-              </div>
+              {user?.data.additionalDegree && (
+                <div className="flex-1">
+                  <CardDescription>Degree {user?.data.additionalDegree.type}</CardDescription>
+                  <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
+                    {user?.data.additionalDegree.name}
+                  </p>
+                </div>
+              )}
               <div className="flex-1">
                 <CardDescription>Current GPA</CardDescription>
                 <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  3.8
+                  {user?.cgpa ? user.cgpa.toFixed(2) : "N/A"}
                 </p>
               </div>
             </CardContent>
@@ -123,26 +139,26 @@ export default function Home() {
               <div className="flex-1">
                 <CardDescription>Credits Completed</CardDescription>
                 <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  75
+                  {credits}
                 </p>
               </div>
               <div className="flex-1">
                 <CardDescription>Credits Remaining</CardDescription>
                 <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  45
+                  {totalCredits - credits}
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <CircularProgress
+          {totalCredits !== 0 && <CircularProgress
             currentValue={credits}
             totalValue={totalCredits}
             additionalInfo={[
               { label: "Credits", current: credits, total: totalCredits },
               { label: "Classes", current: classes, total: totalClasses },
             ]}
-          />
+          />}
         </div>
       </div>
 

@@ -68,9 +68,10 @@ export default function CircularProgress({
           xmlns="http://www.w3.org/2000/svg"
           style={{
             shapeRendering: "geometricPrecision",
-            textRendering: "geometricPrecision"
+            textRendering: "geometricPrecision",
           }}
         >
+          {/* This is the background circle (red) */}
           <circle
             cx={(size * 0.7) / 2}
             cy={(size * 0.7) / 2}
@@ -85,6 +86,7 @@ export default function CircularProgress({
             }}
           />
 
+          {/* This is the progress circle (green) */}
           <motion.circle
             cx={(size * 0.7) / 2}
             cy={(size * 0.7) / 2}
@@ -94,6 +96,7 @@ export default function CircularProgress({
             strokeWidth={strokeWidth * 0.7}
             strokeLinecap="round"
             strokeDasharray={smProps.circumference}
+            strokeDashoffset={smProps.dashOffset}
             initial={{ strokeDashoffset: smProps.circumference }}
             animate={{ strokeDashoffset: smProps.dashOffset }}
             transition={{ duration: animationDuration, ease: "easeInOut" }}
@@ -127,9 +130,10 @@ export default function CircularProgress({
           xmlns="http://www.w3.org/2000/svg"
           style={{
             shapeRendering: "geometricPrecision",
-            textRendering: "geometricPrecision"
+            textRendering: "geometricPrecision",
           }}
         >
+          {/* This is the background circle (red) */}
           <circle
             cx={(size * 0.85) / 2}
             cy={(size * 0.85) / 2}
@@ -144,6 +148,7 @@ export default function CircularProgress({
             }}
           />
 
+          {/* This is the progress circle (green) */}
           <motion.circle
             cx={(size * 0.85) / 2}
             cy={(size * 0.85) / 2}
@@ -153,6 +158,7 @@ export default function CircularProgress({
             strokeWidth={strokeWidth * 0.85}
             strokeLinecap="round"
             strokeDasharray={mdProps.circumference}
+            strokeDashoffset={mdProps.dashOffset}
             initial={{ strokeDashoffset: mdProps.circumference }}
             animate={{ strokeDashoffset: mdProps.dashOffset }}
             transition={{ duration: animationDuration, ease: "easeInOut" }}
@@ -186,9 +192,10 @@ export default function CircularProgress({
           xmlns="http://www.w3.org/2000/svg"
           style={{
             shapeRendering: "geometricPrecision",
-            textRendering: "geometricPrecision"
+            textRendering: "geometricPrecision",
           }}
         >
+          {/* This is the background circle (red) */}
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -203,6 +210,7 @@ export default function CircularProgress({
             }}
           />
 
+          {/* This is the progress circle (green) */}
           <motion.circle
             cx={size / 2}
             cy={size / 2}
@@ -212,6 +220,7 @@ export default function CircularProgress({
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={lgProps.circumference}
+            strokeDashoffset={lgProps.dashOffset}
             initial={{ strokeDashoffset: lgProps.circumference }}
             animate={{ strokeDashoffset: lgProps.dashOffset }}
             transition={{ duration: animationDuration, ease: "easeInOut" }}

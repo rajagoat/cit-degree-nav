@@ -9,6 +9,8 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as z from "zod"
 
+import { useAuth } from "@/context/AuthContext"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -24,6 +26,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function Login() {
+    const { login } = useAuth();
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
 
@@ -37,12 +40,14 @@ export default function Login() {
     })
 
     // Handle form submission
-    async function onSubmit(/* data: LoginFormValues */) {
+    async function onSubmit(data: LoginFormValues) {
         setIsLoading(true)
 
         try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000))
+            const authenticatedUser = login(data.email, data.password);
+            if (!authenticatedUser) {
+                throw new Error("Login Failed");
+            }
 
             toast.success("Login successful", {
                 description: "Redirecting to dashboard...",
@@ -53,10 +58,15 @@ export default function Login() {
                 router.push("/")
             }, 1500)
         } catch (error) {
-            console.error("Login error:", error)
-            toast.error("Login failed", {
-                description: "Please check your credentials and try again.",
-            })
+            if (error instanceof Error) {
+                toast.error(error.message, {
+                    description: "Please check your credentials and try again.",
+                })
+            } else {
+                toast.error("Error", {
+                    description: "We're not sure what happened. Please try again later.",
+                })
+            }
         } finally {
             setIsLoading(false)
         }
@@ -96,7 +106,7 @@ export default function Login() {
                                                 id="email"
                                                 type="email"
                                                 placeholder=""
-                                                className="border-0 border-b border-white/50 bg-transparent px-0 text-white placeholder:text-white/50 focus:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                className="border-0 border-b border-white/50 bg-transparent px-2 text-white placeholder:text-white/50 focus:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
                                                 {...form.register("email")}
                                             />
                                             {form.formState.errors.email && (
@@ -109,7 +119,7 @@ export default function Login() {
                                             <Input
                                                 id="password"
                                                 type="password"
-                                                className="border-0 border-b border-white/50 bg-transparent px-0 text-white placeholder:text-white/50 focus:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                className="border-0 border-b border-white/50 bg-transparent px-2 text-white placeholder:text-white/50 focus:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
                                                 {...form.register("password")}
                                             />
                                             {form.formState.errors.password && (
