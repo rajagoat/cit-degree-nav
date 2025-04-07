@@ -37,7 +37,7 @@ export default function Login() {
     })
 
     // Handle form submission
-    async function onSubmit(data: LoginFormValues) {
+    async function onSubmit(/* data: LoginFormValues */) {
         setIsLoading(true)
 
         try {
@@ -53,6 +53,7 @@ export default function Login() {
                 router.push("/")
             }, 1500)
         } catch (error) {
+            console.error("Login error:", error)
             toast.error("Login failed", {
                 description: "Please check your credentials and try again.",
             })
