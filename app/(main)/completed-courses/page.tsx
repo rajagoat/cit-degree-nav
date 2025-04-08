@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext"; // make sure you import your auth hook
 
 interface Course {
   courseNumber: string;
@@ -11,58 +12,66 @@ interface Course {
 }
 
 export default function CompletedCourses() {
-  const [courses] = useState<Course[]>([
-    {
-      courseNumber: "POLY 201",
-      courseName: "Geopolitics Introduction",
-      grade: "A",
-      instructor: "Terry Terrif",
-      term: "Winter 2025",
-    },
-    {
-      courseNumber: "CPSC 413",
-      courseName: "Computer Algorithms II",
-      grade: "D+",
-      instructor: "Peter (Him) Hoyer",
-      term: "Winter 2025",
-    },
-    {
-      courseNumber: "CPSC 329",
-      courseName: "Introduction to Privacy & Security",
-      grade: "A-",
-      instructor: "Janet Leahy",
-      term: "Winter 2025",
-    },
-    {
-      courseNumber: "CPSC 457",
-      courseName: "Operating Systems Class",
-      grade: "B+",
-      instructor: "Old Man",
-      term: "Winter 2025",
-    },
-    {
-      courseNumber: "MATH 211",
-      courseName: "Linear Algebra I",
-      grade: "B+",
-      instructor: "Tin Lee",
-      term: "Winter 2025",
-    },
-    {
-      courseNumber: "CPSC 572",
-      courseName: "Datamining & Network Analysis",
-      grade: "B+",
-      instructor: "Emma Towlson",
-      term: "Fall 2024",
-    },
-  ]);
+  const { user } = useAuth();
 
+  // Compute coursesData on every render based on the current user.
+  // Use a case-insensitive check, if needed.
+  const coursesData: Course[] =
+    String(user?.id) === "39429183" // Mark Houston's ID
+      ? [] // Mark should see an empty list.
+      : [
+          {
+            courseNumber: "POLY 201",
+            courseName: "Geopolitics Introduction",
+            grade: "A",
+            instructor: "Terry Terrif",
+            term: "Winter 2025",
+          },
+          {
+            courseNumber: "CPSC 413",
+            courseName: "Computer Algorithms II",
+            grade: "D+",
+            instructor: "Peter (Him) Hoyer",
+            term: "Winter 2025",
+          },
+          {
+            courseNumber: "CPSC 329",
+            courseName: "Introduction to Privacy & Security",
+            grade: "A-",
+            instructor: "Janet Leahy",
+            term: "Winter 2025",
+          },
+          {
+            courseNumber: "CPSC 457",
+            courseName: "Operating Systems Class",
+            grade: "B+",
+            instructor: "Old Man",
+            term: "Winter 2025",
+          },
+          {
+            courseNumber: "MATH 211",
+            courseName: "Linear Algebra I",
+            grade: "B+",
+            instructor: "Tin Lee",
+            term: "Winter 2025",
+          },
+          {
+            courseNumber: "CPSC 572",
+            courseName: "Datamining & Network Analysis",
+            grade: "B+",
+            instructor: "Emma Towlson",
+            term: "Fall 2024",
+          },
+        ];
+
+  // You can use coursesData directly instead of storing it in state.
   // State for search, sorting, and pagination.
   const [searchTerm, setSearchTerm] = useState("");
   const [sortAscending, setSortAscending] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filter courses based on the search term.
-  const filteredCourses = courses.filter((course) => {
+  const filteredCourses = coursesData.filter((course) => {
     const combined = [
       course.courseNumber,
       course.courseName,
@@ -75,7 +84,7 @@ export default function CompletedCourses() {
     return combined.includes(searchTerm.toLowerCase());
   });
 
-  // Sort the filtered courses by term (using the year extracted from the term string).
+  // Sort the filtered courses by term (extract the year from the term string).
   const sortedCourses = filteredCourses.slice().sort((a, b) => {
     const yearA = parseInt(a.term.split(" ").pop() || "0", 10);
     const yearB = parseInt(b.term.split(" ").pop() || "0", 10);
@@ -90,7 +99,7 @@ export default function CompletedCourses() {
     currentPage * itemsPerPage
   );
 
-  // Toggle sort order when the button is clicked.
+  // Toggle sort order.
   const toggleSort = () => {
     setSortAscending((prev) => !prev);
   };
@@ -123,69 +132,80 @@ export default function CompletedCourses() {
       {/* Page Title */}
       <h1 className="text-2xl font-bold mb-4">Completed Courses</h1>
 
-      {/* Table with Consistent Header and Pill Rows */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-separate [border-spacing:0.75rem]">
-          <thead>
-            <tr className="grid grid-cols-[1fr_2fr_1fr_2fr_1fr]">
-              <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold">
-                Course #
-              </th>
-              <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold">
-                Course Name
-              </th>
-              <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold pl-4">
-                Grade
-              </th>
-              <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold">
-                Instructor
-              </th>
-              <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold flex items-center gap-2">
-                <span>Term</span>
-                <button onClick={toggleSort} className="text-xs text-blue-500 hover:underline">
-                  {sortAscending ? "↑" : "↓"}
-                </button>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedCourses.map((course, index) => (
-              <tr key={index} className="[&>*]:p-0 border-none">
-                <td colSpan={5}>
-                  <div className="bg-white shadow rounded-full px-6 py-4 grid grid-cols-[1fr_2fr_1fr_2fr_1fr] items-center gap-4">
-                    <span>{course.courseNumber}</span>
-                    <span>{course.courseName}</span>
-                    <span className="pl-4">{course.grade}</span>
-                    <span>{course.instructor}</span>
-                    <span>{course.term}</span>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {sortedCourses.length > 0 ? (
+        <>
+          {/* Courses Table */}
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-separate [border-spacing:0.75rem]">
+              <thead>
+                <tr className="grid grid-cols-[1fr_2fr_1fr_2fr_1fr]">
+                  <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold">
+                    Course #
+                  </th>
+                  <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold">
+                    Course Name
+                  </th>
+                  <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold pl-4">
+                    Grade
+                  </th>
+                  <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold">
+                    Instructor
+                  </th>
+                  <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold flex items-center gap-2">
+                    <span>Term</span>
+                    <button onClick={toggleSort} className="text-xs text-blue-500 hover:underline">
+                      {sortAscending ? "↑" : "↓"}
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedCourses.map((course, index) => (
+                  <tr key={index} className="[&>*]:p-0 border-none">
+                    <td colSpan={5}>
+                      <div className="bg-white shadow rounded-full px-6 py-4 grid grid-cols-[1fr_2fr_1fr_2fr_1fr] items-center gap-4">
+                        <span>{course.courseNumber}</span>
+                        <span>{course.courseName}</span>
+                        <span className="pl-4">{course.grade}</span>
+                        <span>{course.instructor}</span>
+                        <span>{course.term}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-      {/* Clickable Pagination */}
-      <div className="flex justify-end items-center mt-4 space-x-2">
-        {Array.from({ length: totalPages }, (_, index) => {
-          const pageNum = index + 1;
-          return (
-            <button
-              key={pageNum}
-              onClick={() => setCurrentPage(pageNum)}
-              style={currentPage === pageNum ? { backgroundColor: "#A31621" } : {}}
-              className={`px-3 py-1 rounded-full transition ${
-                currentPage === pageNum
-                  ? "text-white"
-                  : "border border-gray-300 text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {pageNum}
-            </button>
-          );
-        })}
-      </div>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-end items-center mt-4 space-x-2">
+              {Array.from({ length: totalPages }, (_, index) => {
+                const pageNum = index + 1;
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    style={currentPage === pageNum ? { backgroundColor: "#A31621" } : {}}
+                    className={`px-3 py-1 rounded-full transition ${
+                      currentPage === pageNum
+                        ? "text-white"
+                        : "border border-gray-300 text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </>
+      ) : (
+        // Empty state when there are no courses.
+        <div className="bg-white shadow rounded-lg p-6">
+          <p className="text-center text-gray-700 text-lg">No completed courses.</p>
+        </div>
+      )}
     </main>
   );
 }

@@ -18,12 +18,6 @@ import { usePathname } from 'next/navigation'
 import CitLogo from "@/public/cit-logo.png"
 import { useState } from "react"
 
-
-export function AppSidebar() {
-  const { logout, user } = useAuth()
-  const pathname = usePathname()
-
-
 // Menu items.
 const items = [
   {
@@ -38,14 +32,14 @@ const items = [
   },
   {
     title: "Completed Courses",
-    url: String(user?.id) === "39429183" ? "/no-completed-courses" : "/completed-courses",
+    url: "/completed-courses",
     icon: ListChecks,
   },
 ]
 
-//export function AppSidebar() {
-  //const { logout } = useAuth()
-  //const pathname = usePathname()
+export function AppSidebar() {
+  const { logout } = useAuth()
+  const pathname = usePathname()
   const initialActiveItem = items.find((item) => item.url === pathname)?.title || items[0].title;
   const [activeItem, setActiveItem] = useState<string>(initialActiveItem);
 
