@@ -111,7 +111,7 @@ export default function CompletedCourses() {
         <div className="relative w-full max-w-md">
           <input
             type="text"
-            placeholder="Search"
+            placeholder="Search courses, instructors, etc."
             className="w-full py-2 pl-4 pr-10 rounded-full bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={searchTerm}
             onChange={(e) => {
@@ -139,19 +139,19 @@ export default function CompletedCourses() {
             <table className="min-w-full border-separate [border-spacing:0.75rem]">
               <thead>
                 <tr className="grid grid-cols-[1fr_2fr_1fr_2fr_1fr]">
-                  <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold">
+                  <th className="px-6 py-2 text-left text-black-500 text-lg font-bold">
                     Course #
                   </th>
-                  <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold">
+                  <th className="px-6 py-2 text-left text-black-500 text-lg font-bold">
                     Course Name
                   </th>
-                  <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold pl-4">
+                  <th className="px-6 py-2 text-left text-black-500 text-lg font-bold pl-4">
                     Grade
                   </th>
-                  <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold">
+                  <th className="px-6 py-2 text-left text-black-500 text-lg font-sbold">
                     Instructor
                   </th>
-                  <th className="px-6 py-2 text-left text-gray-500 text-sm font-semibold flex items-center gap-2">
+                  <th className="px-6 py-2 text-left text-black-500 text-lg font-bold flex items-center gap-2">
                     <span>Term</span>
                     <button onClick={toggleSort} className="text-xs text-blue-500 hover:underline">
                       {sortAscending ? "↑" : "↓"}
