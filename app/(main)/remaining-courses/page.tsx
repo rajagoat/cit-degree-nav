@@ -84,7 +84,7 @@ export default function RemainingCourses() {
         <div className="p-6 flex flex-col md:flex-row md:justify-between md:items-center">
           {/* Left Section: Mandatory Courses heading */}
           <div className="text-white">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold">Mandatory Courses</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold">Mandatory Courses</h2>
           </div>
           {/* Right Section: Progress Bar */}
           {totalCredits > 0 && (
@@ -99,6 +99,7 @@ export default function RemainingCourses() {
                   { label: "Credits", current: completedCredits, total: totalCredits },
                   { label: "Classes", current: completedClasses, total: requiredClasses },
                 ]}
+                className="md:w-[25vw]"
               />
             </div>
           )}
