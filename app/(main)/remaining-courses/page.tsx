@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState, useMemo } from "react"
+import { useState, useMemo } from "react"
 import { ChevronRight, ChevronDown, AlertCircle } from "lucide-react"
 import CircularProgress from "@/components/circular-progress"
 import { useAuth } from "@/context/AuthContext"
