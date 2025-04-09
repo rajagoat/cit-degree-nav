@@ -86,7 +86,7 @@ export default function Home() {
   return (
     <main>
       {/* Main Header Section */}
-      <div className="bg-[url(/mountain-range.jpg)] rounded-2xl mt-10 p-4">
+      <div className="bg-[url(/mountain-range.jpg)] rounded-2xl mt-5 p-4">
         <div className="grid grid-cols-2 gap-4 xl:max-w-[80%]">
           {/* Student Info Card */}
           <Card className="col-span-full">

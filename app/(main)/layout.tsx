@@ -24,7 +24,7 @@ export default async function MainLayout({
         <SidebarProvider defaultOpen={defaultOpen}>
             <AppSidebar />
             <main className="flex flex-col flex-1 ml-3 mr-5">
-                <div className="flex justify-between items-center pt-3">
+                <div className="flex justify-between items-center pt-5">
                     <SidebarTrigger />
                     <UserHeader />
                 </div>
