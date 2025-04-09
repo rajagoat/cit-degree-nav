@@ -84,7 +84,7 @@ export default function RemainingCourses() {
         <div className="p-6 flex flex-col md:flex-row md:justify-between md:items-center">
           {/* Left Section: Mandatory Courses heading */}
           <div className="text-white">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold">Mandatory Courses</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5 xl font-semibold">Mandatory Courses</h2>
           </div>
           {/* Right Section: Progress Bar */}
           {totalCredits > 0 && (
@@ -105,7 +105,7 @@ export default function RemainingCourses() {
           )}
         </div>
         {/* Dropdown Toggle (placed separately above the content) */}
-        <div className={`text-white pl-10 ${!dropdownOpen && 'pb-6'}`}>
+        <div className={`text-white pl-5 ${!dropdownOpen && 'pb-6'}`}>
           <button
             onClick={() => setDropdownOpen((prev) => !prev)}
             className="text-lg md:text-2xl lg:text-3xl font-semibold focus:outline-none flex items-center cursor-pointer"
