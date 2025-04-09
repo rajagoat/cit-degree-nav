@@ -56,7 +56,7 @@ export default function CircularProgress({
 
   return (
     <div
-      className={`flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 md:p-6 shadow-sm ${className}`}
+      className={`flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 md:p-6 shadow-sm justify-center ${className}`}
     >
       {/* Small screens (mobile) */}
       <div className="relative block sm:hidden" style={{ width: size * 0.7, height: size * 0.7 }}>

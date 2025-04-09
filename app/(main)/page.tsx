@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -21,34 +21,20 @@ interface Course {
 export default function Home() {
   const { user } = useAuth();
 
-  const calculateTotalCreditsRequired = () => {
-    const primaryCreditsRequired = user?.data.primaryDegree.creditsRequired || 0;
-    const secondaryCreditsRequired = user?.data.additionalDegree?.creditsRequired || 0;
-    return primaryCreditsRequired + secondaryCreditsRequired;
-  };
-
-  const calculateTotalCreditsCompleted = () => {
-    const primaryCreditsCompleted = user?.data.primaryDegree.creditsCompleted || 0;
-    const secondaryCreditsCompleted = user?.data.additionalDegree?.creditsCompleted || 0;
-    return primaryCreditsCompleted + secondaryCreditsCompleted;
-  };
-
-  const [credits, setCredits] = useState(0);
-  const [totalCredits, setTotalCredits] = useState(0)
-  const [classes, setClasses] = useState(0)
-  const [totalClasses, setTotalClasses] = useState(0)
-
-  useEffect(() => {
-    const completed = calculateTotalCreditsCompleted();
-    const required = calculateTotalCreditsRequired();
-    const calculatedClasses = Math.floor(completed / 3);
-    const totalClasses = Math.floor(required / 3);
-
-    setCredits(completed);
-    setTotalCredits(required);
-    setClasses(calculatedClasses);
-    setTotalClasses(totalClasses);
-  }, [user]);
+  const totalCredits = useMemo(() => {
+      const primary = user?.data.primaryDegree?.creditsRequired || 0
+      const secondary = user?.data.additionalDegree?.creditsRequired || 0
+      return primary + secondary
+    }, [user])
+  
+    const completedCredits = useMemo(() => {
+      const primary = user?.data.primaryDegree?.creditsCompleted || 0
+      const secondary = user?.data.additionalDegree?.creditsCompleted || 0
+      return primary + secondary
+    }, [user])
+  
+    const completedClasses = Math.floor(completedCredits / 3)
+    const requiredClasses = Math.floor(totalCredits / 3)
 
   // State for modal display
   const [selectedCourse, setSelectedCourse] = useState(null as Course | null);
@@ -86,7 +72,7 @@ export default function Home() {
   return (
     <main>
       {/* Main Header Section */}
-      <div className="bg-[url(/mountain-range.jpg)] rounded-2xl mt-10 p-4">
+      <div className="bg-[url(/mountain-range.jpg)] rounded-2xl mt-5 p-4">
         <div className="grid grid-cols-2 gap-4 xl:max-w-[80%]">
           {/* Student Info Card */}
           <Card className="col-span-full">
@@ -139,24 +125,24 @@ export default function Home() {
               <div className="flex-1">
                 <CardDescription>Credits Completed</CardDescription>
                 <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  {credits}
+                  {completedCredits}
                 </p>
               </div>
               <div className="flex-1">
                 <CardDescription>Credits Remaining</CardDescription>
                 <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  {totalCredits - credits}
+                  {totalCredits - completedCredits}
                 </p>
               </div>
             </CardContent>
           </Card>
 
           {totalCredits !== 0 && <CircularProgress
-            currentValue={credits}
+            currentValue={completedCredits}
             totalValue={totalCredits}
             additionalInfo={[
-              { label: "Credits", current: credits, total: totalCredits },
-              { label: "Classes", current: classes, total: totalClasses },
+              { label: "Credits", current: completedCredits, total: totalCredits },
+              { label: "Classes", current: completedClasses, total: requiredClasses },
             ]}
           />}
         </div>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext"; // make sure you import your auth hook
+import { useAuth } from "@/context/AuthContext";
+import { courses } from "@/data/mockData";
 
-interface Course {
+interface CourseData {
   courseNumber: string;
   courseName: string;
   grade: string;
@@ -11,66 +12,32 @@ interface Course {
   term: string;
 }
 
+// Helper to get a course name from the courses array in mockData.ts
+function getCourseName(courseCode: string): string {
+  const course = courses.find((c) => c.code === courseCode);
+  return course ? course.name : courseCode;
+}
+
 export default function CompletedCourses() {
   const { user } = useAuth();
 
-  // Compute coursesData on every render based on the current user.
-  // Use a case-insensitive check, if needed.
-  const coursesData: Course[] =
-    String(user?.id) === "39429183" // Mark Houston's ID
-      ? [] // Mark should see an empty list.
-      : [
-          {
-            courseNumber: "POLY 201",
-            courseName: "Geopolitics Introduction",
-            grade: "A",
-            instructor: "Terry Terrif",
-            term: "Winter 2025",
-          },
-          {
-            courseNumber: "CPSC 413",
-            courseName: "Computer Algorithms II",
-            grade: "D+",
-            instructor: "Peter (Him) Hoyer",
-            term: "Winter 2025",
-          },
-          {
-            courseNumber: "CPSC 329",
-            courseName: "Introduction to Privacy & Security",
-            grade: "A-",
-            instructor: "Janet Leahy",
-            term: "Winter 2025",
-          },
-          {
-            courseNumber: "CPSC 457",
-            courseName: "Operating Systems Class",
-            grade: "B+",
-            instructor: "Old Man",
-            term: "Winter 2025",
-          },
-          {
-            courseNumber: "MATH 211",
-            courseName: "Linear Algebra I",
-            grade: "B+",
-            instructor: "Tin Lee",
-            term: "Winter 2025",
-          },
-          {
-            courseNumber: "CPSC 572",
-            courseName: "Datamining & Network Analysis",
-            grade: "B+",
-            instructor: "Emma Towlson",
-            term: "Fall 2024",
-          },
-        ];
+  // Build coursesData from user's completedCourses field if available
+  const coursesData: CourseData[] = user?.data.completedCourses
+    ? user.data.completedCourses.map((cc) => ({
+      courseNumber: cc.code,
+      courseName: getCourseName(cc.code),
+      grade: cc.grade,
+      instructor: cc.instructor,
+      term: cc.term,
+    }))
+    : [];
 
-  // You can use coursesData directly instead of storing it in state.
   // State for search, sorting, and pagination.
   const [searchTerm, setSearchTerm] = useState("");
   const [sortAscending, setSortAscending] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter courses based on the search term.
+  // Filter courses based on search term.
   const filteredCourses = coursesData.filter((course) => {
     const combined = [
       course.courseNumber,
@@ -84,7 +51,7 @@ export default function CompletedCourses() {
     return combined.includes(searchTerm.toLowerCase());
   });
 
-  // Sort the filtered courses by term (extract the year from the term string).
+  // Sort the filtered courses by term (extracting the year)
   const sortedCourses = filteredCourses.slice().sort((a, b) => {
     const yearA = parseInt(a.term.split(" ").pop() || "0", 10);
     const yearB = parseInt(b.term.split(" ").pop() || "0", 10);
@@ -92,7 +59,7 @@ export default function CompletedCourses() {
   });
 
   // Pagination logic.
-  const itemsPerPage = 4;
+  const itemsPerPage = 10;
   const totalPages = Math.ceil(sortedCourses.length / itemsPerPage);
   const paginatedCourses = sortedCourses.slice(
     (currentPage - 1) * itemsPerPage,
@@ -163,7 +130,7 @@ export default function CompletedCourses() {
                 {paginatedCourses.map((course, index) => (
                   <tr key={index} className="[&>*]:p-0 border-none">
                     <td colSpan={5}>
-                      <div className="bg-white shadow rounded-full px-6 py-4 grid grid-cols-[1fr_2fr_1fr_2fr_1fr] items-center gap-4">
+                      <div className="bg-white shadow rounded-full px-6 py-4 grid grid-cols-[1fr_2fr_1fr_2fr_1fr] items-center gap-10">
                         <span>{course.courseNumber}</span>
                         <span>{course.courseName}</span>
                         <span className="pl-4">{course.grade}</span>
@@ -187,11 +154,10 @@ export default function CompletedCourses() {
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
                     style={currentPage === pageNum ? { backgroundColor: "#A31621" } : {}}
-                    className={`px-3 py-1 rounded-full transition ${
-                      currentPage === pageNum
-                        ? "text-white"
-                        : "border border-gray-300 text-gray-700 hover:bg-gray-100"
-                    }`}
+                    className={`px-3 py-1 rounded-full transition ${currentPage === pageNum
+                      ? "text-white"
+                      : "border border-gray-300 text-gray-700 hover:bg-gray-100"
+                      }`}
                   >
                     {pageNum}
                   </button>
