@@ -11,9 +11,10 @@ import {
 } from "@/components/ui/card";
 import CircularProgress from "@/components/circular-progress";
 import { useAuth } from "@/context/AuthContext";
-import { X } from "lucide-react";
+import { X, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function Home() {
   const { user } = useAuth();
@@ -139,10 +140,20 @@ export default function Home() {
         {/* Big bubble background color */}
         <Card style={{ backgroundColor: "#4E8098" }} className="text-white">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">
+            <CardTitle className="text-lg font-semibold flex justify-center justify-start">
               Recommended Courses
+              <Tooltip>
+              <TooltipTrigger>
+              <Info size={20} className="ml-2 text-white cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>
+              <p>These courses are recommended based on the prerequisites you have completed. Click on the class to learn more.</p>
+              </TooltipContent>
+          </Tooltip>
             </CardTitle>
+
           </CardHeader>
+
           <CardContent>
             <div className="space-y-4">
               {recommendedCourses.map((course) => (
@@ -219,7 +230,7 @@ export default function Home() {
               <p>{selectedCourse.description}</p>
             </div>
 
-            <div className="bg-white rounded-md p-2 flex gap-2">
+            <div className="bg-white rounded-md p-2 flex gap-2 mb-4">
               <p className="font-bold">Prerequisite(s):</p>
               {selectedCourse.prerequisites ? selectedCourse.prerequisites.map((prereq) => {
                 const isCompleted = isPrerequisiteCompleted(prereq)
@@ -238,6 +249,11 @@ export default function Home() {
                 <span className="bg-[#008000] text-white px-3 py-1 rounded-md text-sm">N/A</span>
               )}
             </div>
+
+            <div className="bg-white rounded-md p-2 ">
+                            <span className="font-bold">Credits: </span>
+                            <span>3</span>
+                            </div>
           </div>
         </div>
       )}

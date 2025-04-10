@@ -1,9 +1,10 @@
 "use client"
 
 import { type Course, courses as allCourses } from "@/data/mockData"
-import { ChevronRight, ChevronDown, X, Filter } from "lucide-react"
+import { ChevronRight, ChevronDown, X, Filter, Info } from "lucide-react"
 import { useState, useMemo, useEffect } from "react"
 import { Button } from "./ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface DropdownSectionProps {
     title: string
@@ -115,9 +116,29 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
                 <div className="mt-2 px-6 pb-6">
                     <div className="grid grid-cols-3 text-white font-medium py-3 px-4">
                         <div>Course #</div>
+                        <div className="flex ">
                         <div>Course Name</div>
-                        <div className="text-right">Prerequisite(s)</div>
-                    </div>
+                        <Tooltip>
+                            <TooltipTrigger>
+                            <Info size={20} className="ml-2 text-white cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                            <p>Click on the course to learn more.</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        </div>
+                        <div className="flex justify-end">
+                        <div >Prerequisite(s)</div>
+                        <Tooltip>
+                            <TooltipTrigger>
+                            <Info size={20} className="ml-2 text-white cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                            <p>Click on the prerequisite to learn more.</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        </div>
+                        </div>
 
                     {filteredCourses.length > 0 ? (
                         <div className="space-y-3">
@@ -187,7 +208,7 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
                             <p className="font-bold">Description:</p>
                             <p>{selectedCourse.description}</p>
                         </div>
-                        <div className="bg-white rounded-md p-2 flex gap-2 flex-wrap">
+                        <div className="bg-white rounded-md p-2 flex gap-2 flex-wrap mb-4">
                             <p className="font-bold">Prerequisite(s):</p>
                             {selectedCourse.prerequisites?.length ? selectedCourse.prerequisites.map((prereq) => {
                                 const isCompleted = isPrerequisiteCompleted(prereq)
@@ -198,6 +219,11 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
                                 )
                             }) : <span className="bg-[#008000] text-white px-3 py-1 rounded-md text-sm">N/A</span>}
                         </div>
+
+                         <div className="bg-white rounded-md p-2 ">
+                            <span className="font-bold">Credits: </span>
+                            <span>3</span>
+                            </div>
                     </div>
                 </div>
             )}
