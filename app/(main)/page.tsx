@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import CircularProgress from "@/components/circular-progress";
 import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
 
 interface Course {
   courseCode: string;
@@ -196,7 +197,7 @@ export default function Home() {
       {/* Modal Overlay for Course Info */}
       {selectedCourse && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
           onClick={closeModal}
         >
           <div
@@ -207,12 +208,12 @@ export default function Home() {
               {selectedCourse.courseCode}: {selectedCourse.courseName}
             </h2>
             <p className="text-gray-700 mb-4">{selectedCourse.info}</p>
-            <button
+            <Button
               onClick={closeModal}
-              className="px-4 py-2 bg-red-500 text-white rounded"
+              className="px-4 py-2 bg-red-500 text-white rounded cursor-pointer"
             >
               Close
-            </button>
+            </Button>
           </div>
         </div>
       )}
