@@ -39,7 +39,7 @@ export default function Home() {
     return allCourses.filter((course) => {
       return user?.data.recommendedCourses?.includes(course.code);
     });
-  }, [allCourses, user]);
+  }, [user]);
 
   const openModal = (course: Course) => {
     setSelectedCourse(course);
@@ -150,7 +150,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recommendedCourses.map((course, index) => (
+              {recommendedCourses.map((course) => (
                 <div
                   key={course.code}
                   onClick={() => openModal(course)}
