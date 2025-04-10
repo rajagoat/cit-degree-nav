@@ -1,5 +1,6 @@
 "use client";
 
+import { type Course, courses as allCourses } from "@/data/mockData"
 import { useState, useMemo } from "react";
 import {
   Card,
@@ -10,57 +11,36 @@ import {
 } from "@/components/ui/card";
 import CircularProgress from "@/components/circular-progress";
 import { useAuth } from "@/context/AuthContext";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface Course {
-  courseCode: string;
-  courseName: string;
-  prerequisites: string[];
-  info: string;
-}
+import { Separator } from "@/components/ui/separator";
 
 export default function Home() {
   const { user } = useAuth();
 
   const totalCredits = useMemo(() => {
-      const primary = user?.data.primaryDegree?.creditsRequired || 0
-      const secondary = user?.data.additionalDegree?.creditsRequired || 0
-      return primary + secondary
-    }, [user])
-  
-    const completedCredits = useMemo(() => {
-      const primary = user?.data.primaryDegree?.creditsCompleted || 0
-      const secondary = user?.data.additionalDegree?.creditsCompleted || 0
-      return primary + secondary
-    }, [user])
-  
-    const completedClasses = Math.floor(completedCredits / 3)
-    const requiredClasses = Math.floor(totalCredits / 3)
+    const primary = user?.data.primaryDegree?.creditsRequired || 0
+    const secondary = user?.data.additionalDegree?.creditsRequired || 0
+    return primary + secondary
+  }, [user])
+
+  const completedCredits = useMemo(() => {
+    const primary = user?.data.primaryDegree?.creditsCompleted || 0
+    const secondary = user?.data.additionalDegree?.creditsCompleted || 0
+    return primary + secondary
+  }, [user])
+
+  const completedClasses = Math.floor(completedCredits / 3)
+  const requiredClasses = Math.floor(totalCredits / 3)
 
   // State for modal display
   const [selectedCourse, setSelectedCourse] = useState(null as Course | null);
 
-  // Sample recommended courses data with multiple prerequisites
-  const recommendedCourses = [
-    {
-      courseCode: "CPSC 457",
-      courseName: "Principles of Operating Systems",
-      prerequisites: ["CPSC 331", "CPSC 335"],
-      info: "Explore OS concepts: concurrency, memory management, scheduling, etc.",
-    },
-    {
-      courseCode: "CPSC 522",
-      courseName: "Computer Algorithm Engineering II",
-      prerequisites: ["CPSC 313", "CPSC 427"],
-      info: "Advanced algorithm design and analysis, focusing on performance and engineering principles.",
-    },
-    {
-      courseCode: "Math 471",
-      courseName: "Imaginary Numbers and solving Things II",
-      prerequisites: ["MATH 331"],
-      info: "Dive deeper into complex analysis and advanced problem-solving techniques.",
-    },
-  ];
+  const recommendedCourses = useMemo(() => {
+    return allCourses.filter((course) => {
+      return user?.data.recommendedCourses?.includes(course.code);
+    });
+  }, [user]);
 
   const openModal = (course: Course) => {
     setSelectedCourse(course);
@@ -70,13 +50,24 @@ export default function Home() {
     setSelectedCourse(null);
   };
 
+  const isPrerequisiteCompleted = (prerequisiteCode: string): boolean => {
+    return user?.data.completedCourses?.some(
+      (course) => course.code === prerequisiteCode
+    ) || false;
+  }
+
+  const getCourseFromPrerequisite = (prerequisiteCode: string): Course | undefined => {
+    // Find the course that matches the prerequisite code
+    return allCourses.find((course) => course.code.trim().toLowerCase() === prerequisiteCode.trim().toLowerCase())
+  }
+
   return (
     <main>
       {/* Main Header Section */}
       <div className="bg-[url(/mountain-range.jpg)] rounded-2xl mt-5 p-4">
-        <div className="grid grid-cols-2 gap-4 xl:max-w-[80%]">
+        <div className="flex flex-wrap gap-4 xl:max-w-[80%] xl:mx-auto items-center">
           {/* Student Info Card */}
-          <Card className="col-span-full">
+          <Card className="flex-1 min-w-[60%]">
             <CardHeader className="flex flex-col sm:flex-row">
               <div className="flex-1">
                 <CardDescription>Name</CardDescription>
@@ -91,6 +82,7 @@ export default function Home() {
                 </CardTitle>
               </div>
             </CardHeader>
+            <Separator />
             <CardContent className="flex flex-col sm:flex-row">
               <div className="flex-1">
                 <CardDescription>Degree Major</CardDescription>
@@ -115,37 +107,22 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          {/* Credits Status Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-[var(--primary)]">
-                Credits Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row">
-              <div className="flex-1">
-                <CardDescription>Credits Completed</CardDescription>
-                <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  {completedCredits}
-                </p>
-              </div>
-              <div className="flex-1">
-                <CardDescription>Credits Remaining</CardDescription>
-                <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  {totalCredits - completedCredits}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {totalCredits !== 0 && <CircularProgress
-            currentValue={completedCredits}
-            totalValue={totalCredits}
-            additionalInfo={[
-              { label: "Credits", current: completedCredits, total: totalCredits },
-              { label: "Classes", current: completedClasses, total: requiredClasses },
-            ]}
-          />}
+          {/* Circular Progress */}
+          <div className="  ">
+            {totalCredits !== 0 && (
+              <CircularProgress
+                title="Credits Status"
+                size={150}
+                strokeWidth={10}
+                currentValue={completedCredits}
+                totalValue={totalCredits}
+                additionalInfo={[
+                  { label: "Credits", current: completedCredits, total: totalCredits },
+                  { label: "Classes", current: completedClasses, total: requiredClasses },
+                ]}
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -160,31 +137,47 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recommendedCourses.map((course, index) => (
+              {recommendedCourses.map((course) => (
                 <div
-                  key={index}
-                  className="bg-[#FCF7F8] p-4 rounded shadow text-black flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                  key={course.code}
+                  onClick={() => openModal(course)}
+                  className="group bg-[#FCF7F8] p-4 rounded shadow text-black flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between cursor-pointer"
                 >
                   {/* Course Code & Name */}
                   <div>
-                    <p className="font-medium text-lg">{course.courseCode}</p>
-                    <p className="text-sm text-gray-500">{course.courseName}</p>
+                    <p className="group-hover:font-semibold font-medium text-lg">{course.code}</p>
+                    <p className="group-hover:font-semibold text-sm text-gray-500">{course.name}</p>
                   </div>
 
                   {/* Prerequisites: multiple green pills */}
                   <div className="mt-2 sm:mt-0 flex flex-col gap-1 sm:gap-2 sm:flex-row sm:items-center">
                     <span className="text-sm font-semibold">Prerequisites:</span>
                     <div className="flex flex-wrap gap-2">
-                      {course.prerequisites.map((prereq) => (
-                        <div
-                          key={prereq}
-                          // Clickable pill that opens the modal for this course
-                          onClick={() => openModal(course)}
-                          className="bg-[#008000] text-white px-3 py-1 rounded-full cursor-pointer"
+                      {course.prerequisites ? course.prerequisites.map((prereq) => {
+                        const isCompleted = isPrerequisiteCompleted(prereq)
+
+                        return (
+                          <Button
+                            variant="outline"
+                            key={prereq}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openModal(getCourseFromPrerequisite(prereq) as Course)
+                            }}
+                            className={`px-3 py-1 cursor-pointer rounded-md text-sm whitespace-nowrap ${isCompleted ? "bg-[#008000] text-white" : "bg-[#A31621] text-white"
+                              }`}
+                          >
+                            {prereq}
+                          </Button>
+                        )
+                      }) : (
+                        <span
+                          className="bg-[#008000] text-white px-3 py-1 rounded-md text-sm cursor-default"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          {prereq}
-                        </div>
-                      ))}
+                          N/A
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -201,19 +194,42 @@ export default function Home() {
           onClick={closeModal}
         >
           <div
-            className="bg-white p-6 rounded shadow-lg max-w-lg w-full"
+            className="bg-[#CED3DC] p-6 rounded shadow-lg max-w-lg w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-bold mb-4">
-              {selectedCourse.courseCode}: {selectedCourse.courseName}
-            </h2>
-            <p className="text-gray-700 mb-4">{selectedCourse.info}</p>
-            <Button
-              onClick={closeModal}
-              className="px-4 py-2 bg-red-500 text-white rounded cursor-pointer"
+            <X className="float-right cursor-pointer" size={40} onClick={closeModal} />
+            <div
+              className="text-center p-1 mb-4 w-[80%] mx-auto rounded-md"
             >
-              Close
-            </Button>
+              <h2 className="text-2xl font-semibold">
+                {selectedCourse.code}: {selectedCourse.name}
+              </h2>
+            </div>
+
+            <div className="bg-white rounded-md p-2 mb-4">
+              <p className="font-bold">Description:</p>
+              <p>{selectedCourse.description}</p>
+            </div>
+
+            <div className="bg-white rounded-md p-2 flex gap-2">
+              <p className="font-bold">Prerequisite(s):</p>
+              {selectedCourse.prerequisites ? selectedCourse.prerequisites.map((prereq) => {
+                const isCompleted = isPrerequisiteCompleted(prereq)
+                return (
+                  <div
+                    key={prereq}
+                    className={`px-3 py-1 rounded-md text-sm whitespace-nowrap text-white ${isCompleted ? "bg-[#008000]" : "bg-[#A31621]"
+                      }`}
+                  >
+
+                    {prereq}
+                  </div>
+                )
+              }
+              ) : (
+                <span className="bg-[#008000] text-white px-3 py-1 rounded-md text-sm">N/A</span>
+              )}
+            </div>
           </div>
         </div>
       )}

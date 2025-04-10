@@ -1,15 +1,25 @@
 "use client"
 
 import { type Course, courses as allCourses } from "@/data/mockData"
-import { ChevronRight, ChevronDown } from "lucide-react"
-import { useState } from "react"
+import { ChevronRight, ChevronDown, X, Filter } from "lucide-react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "./ui/button"
 
 interface DropdownSectionProps {
     title: string
     courses: Course[]
-    completedCourseCodes: string[] // list of course codes t    he student has completed
-    creditInfo?: string // information about credits completed for this section
+    completedCourseCodes: string[]
+    creditInfo?: string
+}
+
+function getCourseType(code: string): string {
+    if (code.startsWith("CS")) return "Computer Science"
+    if (code.startsWith("SE")) return "Software Engineering"
+    if (code.startsWith("DS")) return "Data Science"
+    if (code.startsWith("MATH")) return "Mathematics"
+    if (code.startsWith("ENG")) return "English"
+    if (code.startsWith("ML")) return "Machine Learning"
+    return "Other"
 }
 
 const ITEMS_PER_PAGE = 5
@@ -17,29 +27,18 @@ const ITEMS_PER_PAGE = 5
 export default function DropdownSection({ title, courses, completedCourseCodes, creditInfo }: DropdownSectionProps) {
     const [open, setOpen] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
-    // State for modal display
-    const [selectedCourse, setSelectedCourse] = useState(null as Course | null);
+    const [selectedCourse, setSelectedCourse] = useState(null as Course | null)
 
-    const openModal = (course: Course) => {
-        setSelectedCourse(course);
-    };
+    // Filter modal state
+    const [filterModalOpen, setFilterModalOpen] = useState(false)
+    const allCourseTypes = useMemo(() => [...new Set(courses.map((c) => getCourseType(c.code)))], [courses])
+    const [selectedTypes, setSelectedTypes] = useState<string[]>(allCourseTypes)
+    useEffect(() => {
+        setSelectedTypes(allCourseTypes)
+    }, [allCourseTypes])
 
-    const closeModal = () => {
-        setSelectedCourse(null);
-    };
+    const [tempSelectedTypes, setTempSelectedTypes] = useState<string[]>(selectedTypes)
 
-    const totalPages = Math.ceil(courses.length / ITEMS_PER_PAGE)
-    const paginatedCourses = courses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
-
-    const handlePrevPage = () => {
-        setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev))
-    }
-
-    const handleNextPage = () => {
-        setCurrentPage((prev) => (prev < totalPages ? prev + 1 : prev))
-    }
-
-    // Reset pagination when dropdown is closed/opened (optional)
     const toggleDropdown = () => {
         setOpen((prev) => {
             if (prev) setCurrentPage(1)
@@ -47,19 +46,45 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
         })
     }
 
-    // Helper function to check if a prerequisite is completed
-    const isPrerequisiteCompleted = (prerequisiteCode: string): boolean => {
-        // Normalize both the prerequisite code and completed codes for accurate comparison
-        const normalizedPrereq = prerequisiteCode.trim().toLowerCase()
-        const normalizedCompletedCodes = completedCourseCodes.map((code) => code.trim().toLowerCase())
+    const openModal = (course: Course) => setSelectedCourse(course)
+    const closeModal = () => setSelectedCourse(null)
 
-        // Check if the prerequisite is in the completed courses list
-        return normalizedCompletedCodes.includes(normalizedPrereq)
+    const isPrerequisiteCompleted = (prereq: string) =>
+        completedCourseCodes.map((c) => c.trim().toLowerCase()).includes(prereq.trim().toLowerCase())
+
+    const getCourseFromPrerequisite = (code: string) =>
+        allCourses.find((c) => c.code.trim().toLowerCase() === code.trim().toLowerCase())
+
+    const filteredCourses = courses.filter((course) => selectedTypes.includes(getCourseType(course.code)))
+    const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE)
+    const paginatedCourses = filteredCourses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+
+    const handlePrevPage = () => setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev))
+    const handleNextPage = () => setCurrentPage((prev) => (prev < totalPages ? prev + 1 : prev))
+
+    const handleFilterToggle = (type: string) => {
+        setTempSelectedTypes((prev) =>
+            prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+        )
     }
 
-    const getCourseFromPrerequisite = (prerequisiteCode: string): Course | undefined => {
-        // Find the course that matches the prerequisite code
-        return allCourses.find((course) => course.code.trim().toLowerCase() === prerequisiteCode.trim().toLowerCase())
+    const toggleAll = () => {
+        if (tempSelectedTypes.length === allCourseTypes.length) {
+            setTempSelectedTypes([])
+        } else {
+            setTempSelectedTypes(allCourseTypes)
+        }
+    }
+
+    const applyFilters = () => {
+        setSelectedTypes(tempSelectedTypes)
+        setFilterModalOpen(false)
+        setCurrentPage(1)
+    }
+
+    const cancelFilters = () => {
+        setTempSelectedTypes(selectedTypes)
+        setFilterModalOpen(false)
     }
 
     return (
@@ -75,7 +100,17 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
                 {creditInfo && (
                     <div className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full text-white">{creditInfo}</div>
                 )}
+                {open && <Button variant="outline" size="sm" onClick={() => setFilterModalOpen(true)}>
+                    <Filter className="mr-2" size={16} />
+                    Filter
+                </Button>}
+                {selectedTypes.length < allCourseTypes.length && (
+                    <span className="text-sm text-yellow-300 font-medium ml-2">
+                        Filter applied
+                    </span>
+                )}
             </div>
+
             {open && (
                 <div className="mt-2 px-6 pb-6">
                     <div className="grid grid-cols-3 text-white font-medium py-3 px-4">
@@ -83,7 +118,8 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
                         <div>Course Name</div>
                         <div className="text-right">Prerequisite(s)</div>
                     </div>
-                    {courses.length > 0 ? (
+
+                    {filteredCourses.length > 0 ? (
                         <div className="space-y-3">
                             {paginatedCourses.map((course) => (
                                 <div
@@ -94,20 +130,18 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
                                     <div className="group-hover:font-semibold">{course.code}</div>
                                     <div className="group-hover:font-semibold">{course.name}</div>
                                     <div className="flex justify-end items-center gap-2 flex-wrap">
-                                        {course.prerequisites && course.prerequisites.length > 0 ? (
+                                        {course.prerequisites?.length ? (
                                             course.prerequisites.map((prereq) => {
                                                 const isCompleted = isPrerequisiteCompleted(prereq)
-
                                                 return (
                                                     <Button
                                                         variant="outline"
                                                         key={prereq}
                                                         onClick={(e) => {
                                                             e.stopPropagation()
-                                                            openModal(getCourseFromPrerequisite(prereq) as Course)
+                                                            openModal(getCourseFromPrerequisite(prereq)!)
                                                         }}
-                                                        className={`px-3 py-1 cursor-pointer rounded-md text-sm whitespace-nowrap ${isCompleted ? "bg-[#008000] text-white" : "bg-[#A31621] text-white"
-                                                            }`}
+                                                        className={`px-3 py-1 text-sm whitespace-nowrap ${isCompleted ? "bg-[#008000]" : "bg-[#A31621]"} text-white cursor-pointer`}
                                                     >
                                                         {prereq}
                                                     </Button>
@@ -115,8 +149,8 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
                                             })
                                         ) : (
                                             <span
-                                                className="bg-[#008000] text-white px-3 py-1 rounded-md text-sm cursor-default"
                                                 onClick={(e) => e.stopPropagation()}
+                                                className="bg-[#008000] text-white px-3 py-1 rounded-md text-sm cursor-default"
                                             >
                                                 N/A
                                             </span>
@@ -127,53 +161,73 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
                         </div>
                     ) : (
                         <div className="bg-green-100 text-green-800 rounded-sm shadow-md py-6 px-6 text-center">
-                            <p className="font-medium">All courses in this section have been completed! 🎉</p>
+                            <p className="font-medium">No courses match the selected filters.</p>
                         </div>
                     )}
-                    {/* Pagination Controls */}
+
                     {totalPages > 1 && (
                         <div className="flex justify-end items-center mt-4 gap-2">
-                            <button
-                                onClick={handlePrevPage}
-                                disabled={currentPage === 1}
-                                className="px-3 py-1 rounded-md text-sm bg-gray-200 text-gray-700 disabled:opacity-50"
-                            >
-                                Previous
-                            </button>
-                            <span className="text-sm text-white">
-                                Page {currentPage} of {totalPages}
-                            </span>
-                            <button
-                                onClick={handleNextPage}
-                                disabled={currentPage === totalPages}
-                                className="px-3 py-1 rounded-md text-sm bg-gray-200 text-gray-700 disabled:opacity-50"
-                            >
-                                Next
-                            </button>
+                            <button onClick={handlePrevPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md text-sm bg-gray-200 text-gray-700 disabled:opacity-50">Previous</button>
+                            <span className="text-sm text-white">Page {currentPage} of {totalPages}</span>
+                            <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md text-sm bg-gray-200 text-gray-700 disabled:opacity-50">Next</button>
                         </div>
                     )}
                 </div>
             )}
-            {/* Modal Overlay for Course Info */}
+
+            {/* Course Modal */}
             {selectedCourse && (
-                <div
-                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                    onClick={closeModal}
-                >
-                    <div
-                        className="bg-white p-6 rounded shadow-lg max-w-lg w-full"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h2 className="text-2xl font-bold mb-4">
-                            {selectedCourse.code}: {selectedCourse.name}
-                        </h2>
-                        <p className="text-gray-700 mb-4">{selectedCourse.description}</p>
-                        <Button
-                            onClick={closeModal}
-                            className="px-4 py-2 bg-red-500 text-white rounded cursor-pointer"
-                        >
-                            Close
-                        </Button>
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={closeModal}>
+                    <div className="bg-[#CED3DC] p-6 rounded shadow-lg max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
+                        <X className="float-right cursor-pointer" size={40} onClick={closeModal} />
+                        <div className="text-center p-1 mb-4 w-[80%] mx-auto rounded-md">
+                            <h2 className="text-2xl font-semibold">{selectedCourse.code}: {selectedCourse.name}</h2>
+                        </div>
+                        <div className="bg-white rounded-md p-2 mb-4">
+                            <p className="font-bold">Description:</p>
+                            <p>{selectedCourse.description}</p>
+                        </div>
+                        <div className="bg-white rounded-md p-2 flex gap-2 flex-wrap">
+                            <p className="font-bold">Prerequisite(s):</p>
+                            {selectedCourse.prerequisites?.length ? selectedCourse.prerequisites.map((prereq) => {
+                                const isCompleted = isPrerequisiteCompleted(prereq)
+                                return (
+                                    <div key={prereq} className={`px-3 py-1 rounded-md text-sm text-white ${isCompleted ? "bg-[#008000]" : "bg-[#A31621]"}`}>
+                                        {prereq}
+                                    </div>
+                                )
+                            }) : <span className="bg-[#008000] text-white px-3 py-1 rounded-md text-sm">N/A</span>}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Filter Modal */}
+            {filterModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={cancelFilters}>
+                    <div className="bg-white p-6 rounded shadow-md max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+                        <h2 className="text-xl font-semibold mb-4">Filter Courses</h2>
+                        <div className="space-y-2 max-h-60 overflow-y-auto mb-4">
+                            {allCourseTypes.map((type) => (
+                                <label key={type} className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={tempSelectedTypes.includes(type)}
+                                        onChange={() => handleFilterToggle(type)}
+                                    />
+                                    <span>{type}</span>
+                                </label>
+                            ))}
+                        </div>
+                        <div className="flex justify-between items-center mb-4">
+                            <Button variant="ghost" onClick={toggleAll}>
+                                {tempSelectedTypes.length === allCourseTypes.length ? "Unselect All" : "Select All"}
+                            </Button>
+                        </div>
+                        <div className="flex justify-end gap-3">
+                            <Button onClick={cancelFilters}>Cancel</Button>
+                            <Button variant="outline" onClick={applyFilters}>Apply</Button>
+                        </div>
                     </div>
                 </div>
             )}
