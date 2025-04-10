@@ -65,7 +65,7 @@ export default function Home() {
     <main>
       {/* Main Header Section */}
       <div className="bg-[url(/mountain-range.jpg)] bg-cover rounded-2xl mt-5 p-4">
-        <div className="flex flex-wrap gap-4 xl:max-w-[80%] xl:mx-auto items-center">
+        <div className="flex flex-wrap gap-4 xl:max-w-[90%] xl:mx-auto items-center">
           {/* Student Info Card */}
           <Card className="flex-1 min-w-[60%]">
             <CardHeader className="flex flex-col sm:flex-row">
@@ -94,7 +94,15 @@ export default function Home() {
                 <div className="flex-1">
                   <CardDescription>Degree {user?.data.additionalDegree.type}</CardDescription>
                   <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                    {user?.data.additionalDegree.name}
+                    {user?.data?.additionalDegree?.name} 
+                  </p>
+                </div>
+              )}
+              {user?.data.additionalDegree?.concentration && (
+                <div className="flex-1">
+                  <CardDescription>Concentration </CardDescription>
+                  <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
+                    {user?.data?.additionalDegree?.concentration} 
                   </p>
                 </div>
               )}
