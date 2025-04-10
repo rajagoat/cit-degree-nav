@@ -130,7 +130,7 @@ export default function CompletedCourses() {
                 {paginatedCourses.map((course, index) => (
                   <tr key={index} className="[&>*]:p-0 border-none">
                     <td colSpan={5}>
-                      <div className="bg-[#F5F5F5] shadow rounded-full px-6 py-4 grid grid-cols-[1fr_2fr_1fr_2fr_1fr] items-center gap-10">
+                      <div className="bg-[#F5F5F5] shadow rounded-sm px-6 py-4 grid grid-cols-[1fr_2fr_1fr_2fr_1fr] items-center gap-10">
                         <span>{course.courseNumber}</span>
                         <span>{course.courseName}</span>
                         <span className="pl-4">{course.grade}</span>
