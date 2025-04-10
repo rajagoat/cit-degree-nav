@@ -1,164 +1,297 @@
 "use client"
 
-import type React from "react"
-import { useState, useMemo } from "react"
-import { ChevronRight, ChevronDown, AlertCircle } from "lucide-react"
+import { useState } from "react"
 import CircularProgress from "@/components/circular-progress"
+import Tabs from "@/components/tabs"
+import DropdownSection from "@/components/dropdown-section"
 import { useAuth } from "@/context/AuthContext"
+import { degreeRequirements, courses, type Course, Degree } from "@/data/mockData"
+import { Separator } from "@/components/ui/separator"
+import { Info } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 
-interface TabsProps {
-  tabs: Array<"Computer Science" | "Mathematics">
-  selected: "Computer Science" | "Mathematics"
-  onSelect: (tab: "Computer Science" | "Mathematics") => void
+// Helper interface for section progress (each course counts as 3 credits)
+interface SectionProgress {
+  remainingCredits: number
+  totalCredits: number
+  remainingClasses: number
+  totalClasses: number
+  completedCredits: number
+  completedClasses: number
 }
 
-const Tabs: React.FC<TabsProps> = ({ tabs, selected, onSelect }) => (
-  <div className="flex">
-    {tabs.map((tab) => (
-      <div
-        key={tab}
-        onClick={() => onSelect(tab)}
-        className={`px-4 py-2 cursor-pointer rounded-t-lg font-semibold text-sm ${tab === selected
-          ? "bg-[#A31621] text-white border-[#a51c30]"
-          : "bg-white border-1 text-[#808080]"
-          }`}
-      >
-        {tab}
-      </div>
-    ))}
-  </div>
-)
+// Helper function to get valid courses from the courses array, excluding completed courses
+const getCoursesForCodes = (codes: string[], completedCourseCodes: string[]): Course[] => {
+  const normalizedCompletedCodes = completedCourseCodes.map((code) => code.trim().toLowerCase())
 
-const coursesData = {
-  "Computer Science": [
-    { code: "CS 101", name: "Introduction to Programming", prerequisites: [] },
-    { code: "CS 201", name: "Data Structures", prerequisites: ["CS 101"] },
-    { code: "CS 301", name: "Algorithms", prerequisites: ["CS 201"] },
-    { code: "CS 401", name: "Machine Learning", prerequisites: ["CS 301", "MATH 301"] },
-  ],
-  Mathematics: [
-    { code: "MATH 322", name: "Advanced Math Techniques I", prerequisites: [] },
-    { code: "MATH 389", name: "Aerospace Mathematics I", prerequisites: [] },
-    { code: "MATH 489", name: "Advanced Aerospace Mathematics II", prerequisites: ["MATH 389"] },
-    { code: "MATH 512", name: "Machine Learning in Math", prerequisites: ["MATH 389", "MATH 479"] },
-  ],
+  return codes
+    .map((code) => {
+      const found = courses.find((c) => c.code.trim().toLowerCase() === code.trim().toLowerCase())
+      // Only include courses that haven't been completed
+      if (found && !normalizedCompletedCodes.includes(found.code.trim().toLowerCase())) {
+        return found
+      }
+      return null
+    })
+    .filter((course): course is Course => course !== null)
+}
+
+// Get all courses for codes (including completed ones) for credit calculation
+const getAllCoursesForCodes = (codes: string[]): Course[] => {
+  return codes
+    .map((code) => {
+      const found = courses.find((c) => c.code.trim().toLowerCase() === code.trim().toLowerCase())
+      return found || null
+    })
+    .filter((course): course is Course => course !== null)
+}
+
+// Count completed courses in a section
+const countCompletedCourses = (allCourses: Course[], completedCourseCodes: string[]): number => {
+  const normalizedCompletedCodes = completedCourseCodes.map((code) => code.trim().toLowerCase())
+  return allCourses.filter((course) => normalizedCompletedCodes.includes(course.code.trim().toLowerCase())).length
+}
+
+// Compute section progress for remaining courses in that section
+const calculateSectionProgress = (
+  sectionCourses: Course[],
+  allSectionCourses: Course[],
+  completedCourseCodes: string[],
+): SectionProgress => {
+  const totalCourses = allSectionCourses.length
+  const remainingCourses = sectionCourses.length
+  const completedCourses = countCompletedCourses(allSectionCourses, completedCourseCodes)
+
+  return {
+    remainingCredits: remainingCourses * 3,
+    totalCredits: totalCourses * 3,
+    remainingClasses: remainingCourses,
+    totalClasses: totalCourses,
+    completedCredits: completedCourses * 3,
+    completedClasses: completedCourses,
+  }
 }
 
 export default function RemainingCourses() {
   const { user } = useAuth()
 
-  const totalCredits = useMemo(() => {
-    const primary = user?.data.primaryDegree?.creditsRequired || 0
-    const secondary = user?.data.additionalDegree?.creditsRequired || 0
-    return primary + secondary
-  }, [user])
+  // Build dynamic tabs from user's degrees. For dual degrees, add both.
+  const degreeTabs: { title: string; type: "Major" | "Minor" | "Concentration"; degreeData: Degree }[] = []
+  if (user) {
+    if (user.data.primaryDegree) {
+      degreeTabs.push({
+        title: user.data.primaryDegree.name,
+        type: "Major",
+        degreeData: user.data.primaryDegree,
+      })
+    }
+    if (user.data.additionalDegree) {
+      degreeTabs.push({
+        title: user.data.additionalDegree.name,
+        type: user.data.additionalDegree.type || "Major",
+        degreeData: user.data.additionalDegree,
+      })
+    }
+  }
 
-  const completedCredits = useMemo(() => {
-    const primary = user?.data.primaryDegree?.creditsCompleted || 0
-    const secondary = user?.data.additionalDegree?.creditsCompleted || 0
-    return primary + secondary
-  }, [user])
+  const [selectedTabIndex, setSelectedTabIndex] = useState<number>(0)
+  const selectedTab = degreeTabs[selectedTabIndex]?.title || ""
 
-  const completedClasses = Math.floor(completedCredits / 3)
-  const requiredClasses = Math.floor(totalCredits / 3)
+  // Get completed course codes from user data.
+  const completedCourseCodes = user?.data.completedCourses ? user.data.completedCourses.map((cc) => cc.code) : []
 
-  const [selectedTab, setSelectedTab] = useState<"Computer Science" | "Mathematics">("Computer Science")
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const courses = coursesData[selectedTab]
+  // Get the degree requirements for the selected degree stream.
+  const mainReq = degreeRequirements[selectedTab] || { required: [], electives: [] }
+
+  // If there's a concentration on the additional degree, get its requirements.
+  // Only show concentration if it belongs to the currently selected degree
+  const shouldShowConcentration =
+    user?.data.additionalDegree?.concentration && selectedTab === user.data.additionalDegree.name
+
+  const concentrationReq =
+    shouldShowConcentration && user?.data.additionalDegree?.concentration
+      ? degreeRequirements[user.data.additionalDegree.concentration]
+      : null
+
+  // Get all courses (including completed ones) for credit calculation
+  const allMandatoryMainCourses = getAllCoursesForCodes(mainReq.required)
+  const allElectiveMainCourses = getAllCoursesForCodes(mainReq.electives)
+  const allMandatoryConcentrationCourses = concentrationReq ? getAllCoursesForCodes(concentrationReq.required) : []
+  const allElectiveConcentrationCourses = concentrationReq ? getAllCoursesForCodes(concentrationReq.electives) : []
+
+  // Build arrays for remaining Mandatory and Elective courses.
+  const mandatoryMainCourses = getCoursesForCodes(mainReq.required, completedCourseCodes)
+  const electiveMainCourses = getCoursesForCodes(mainReq.electives, completedCourseCodes)
+
+  const mandatoryConcentrationCourses = concentrationReq
+    ? getCoursesForCodes(concentrationReq.required, completedCourseCodes)
+    : []
+  const electiveConcentrationCourses = concentrationReq
+    ? getCoursesForCodes(concentrationReq.electives, completedCourseCodes)
+    : []
+
+  // Calculate progress for each section.
+  const progressMandatoryMain = calculateSectionProgress(
+    mandatoryMainCourses,
+    allMandatoryMainCourses,
+    completedCourseCodes,
+  )
+  const progressElectiveMain = calculateSectionProgress(
+    electiveMainCourses,
+    allElectiveMainCourses,
+    completedCourseCodes,
+  )
+  const progressMandatoryConcentration = concentrationReq
+    ? calculateSectionProgress(mandatoryConcentrationCourses, allMandatoryConcentrationCourses, completedCourseCodes)
+    : null
+  const progressElectiveConcentration = concentrationReq
+    ? calculateSectionProgress(electiveConcentrationCourses, allElectiveConcentrationCourses, completedCourseCodes)
+    : null
+
+  // Create credit info strings for each section
+  const mandatoryMainCreditInfo = `${progressMandatoryMain.completedCredits}/${progressMandatoryMain.totalCredits} credits`
+  const electiveMainCreditInfo = `${progressElectiveMain.completedCredits}/${progressElectiveMain.totalCredits} credits`
+
+  const mandatoryConcentrationCreditInfo = progressMandatoryConcentration
+    ? `${progressMandatoryConcentration.completedCredits}/${progressMandatoryConcentration.totalCredits} credits`
+    : ""
+
+  const electiveConcentrationCreditInfo = progressElectiveConcentration
+    ? `${progressElectiveConcentration.completedCredits}/${progressElectiveConcentration.totalCredits} credits`
+    : ""
 
   return (
-    <div className="mt-5">
-      {/* Tabs */}
-      <Tabs
-        tabs={["Computer Science", "Mathematics"]}
-        selected={selectedTab}
-        onSelect={(tab) => {
-          setSelectedTab(tab)
-          setDropdownOpen(false)
-        }}
-      />
+    <TooltipProvider>
+      <div className="mt-5 mb-3">
+        {/* Dynamic Tabs */}
+        <Tabs
+          tabs={degreeTabs.map((dt) => dt.title)}
+          selected={degreeTabs[selectedTabIndex]?.title || ""}
+          onSelect={(tab) => {
+            const idx = degreeTabs.findIndex((d) => d.title === tab)
+            setSelectedTabIndex(idx)
+          }}
+        />
 
-      {/* Main Container */}
-      <div className="rounded-xl rounded-tl-none bg-[#4a768a]">
-        {/* Header Section */}
-        <div className="p-6 flex flex-col md:flex-row md:justify-between md:items-center">
-          {/* Left Section: Mandatory Courses heading */}
-          <div className="text-white">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5 xl font-semibold">Mandatory Courses</h2>
-          </div>
-          {/* Right Section: Progress Bar */}
-          {totalCredits > 0 && (
+        {/* Mandatory Courses Section */}
+        <div className="rounded-xl rounded-tl-none bg-[#4E8098]">
+          <div className="p-6 flex flex-col md:flex-row md:justify-between md:items-center">
+            <div className="flex items-center text-white">
+              <h2 className="text-2xl font-bold">Remaining Mandatory Courses</h2>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info size={20} className="ml-2 text-white cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>These courses are required for the program(s) you are enrolled in.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
             <div className="mt-6 md:mt-0">
               <CircularProgress
-                currentValue={completedCredits}
-                totalValue={totalCredits}
+                currentValue={
+                  progressMandatoryMain.completedClasses + (progressMandatoryConcentration?.completedClasses || 0)
+                }
+                totalValue={progressMandatoryMain.totalClasses + (progressMandatoryConcentration?.totalClasses || 0)}
                 size={150}
                 strokeWidth={10}
-                label="Complete"
+                label="Completed"
                 additionalInfo={[
-                  { label: "Credits", current: completedCredits, total: totalCredits },
-                  { label: "Classes", current: completedClasses, total: requiredClasses },
+                  {
+                    label: "Credits",
+                    current:
+                      progressMandatoryMain.completedCredits + (progressMandatoryConcentration?.completedCredits || 0),
+                    total: progressMandatoryMain.totalCredits + (progressMandatoryConcentration?.totalCredits || 0),
+                  },
+                  {
+                    label: "Classes",
+                    current:
+                      progressMandatoryMain.completedClasses + (progressMandatoryConcentration?.completedClasses || 0),
+                    total: progressMandatoryMain.totalClasses + (progressMandatoryConcentration?.totalClasses || 0),
+                  },
                 ]}
                 className="md:w-[25vw]"
               />
             </div>
-          )}
-        </div>
-        {/* Dropdown Toggle (placed separately above the content) */}
-        <div className={`text-white pl-5 ${!dropdownOpen && 'pb-6'}`}>
-          <button
-            onClick={() => setDropdownOpen((prev) => !prev)}
-            className="text-lg md:text-2xl lg:text-3xl font-semibold focus:outline-none flex items-center cursor-pointer"
-          >
-            {dropdownOpen ? (
-              <ChevronDown className="mr-2" size={28} />
-            ) : (
-              <ChevronRight className="mr-2" size={28} />
+          </div>
+          <div className="px-6">
+            <DropdownSection
+              title={`${selectedTab} (${degreeTabs[selectedTabIndex]?.type || "Unknown"})`}
+              courses={mandatoryMainCourses}
+              completedCourseCodes={completedCourseCodes}
+              creditInfo={mandatoryMainCreditInfo}
+            />
+            {progressMandatoryConcentration && shouldShowConcentration && (
+              <DropdownSection
+                title={`${user?.data.additionalDegree?.concentration} (Concentration)`}
+                courses={mandatoryConcentrationCourses}
+                completedCourseCodes={completedCourseCodes}
+                creditInfo={mandatoryConcentrationCreditInfo}
+              />
             )}
-            <span>{selectedTab} (Major)</span>
-          </button>
-        </div>
-        {/* Dropdown Content */}
-        {dropdownOpen && (
-          <div className="px-6 pb-6">
-            <div className="grid grid-cols-3 text-white font-medium py-3 px-4">
-              <div>Course #</div>
-              <div>Course Name</div>
-              <div className="text-right">Prerequisite(s)</div>
+          </div>
+
+          <Separator className="my-5" />
+
+          {/* Elective Courses Section */}
+
+          <div className="p-6 flex flex-col md:flex-row md:justify-between md:items-center">
+            <div className="flex items-center text-white">
+              <h2 className="text-2xl font-bold">Remaining Elective Courses</h2>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info size={20} className="ml-2 text-white cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>These courses are options available to fulfill your elective credit requirements.</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
-            <div className="space-y-3">
-              {courses.map((course, index) => (
-                <div
-                  key={index}
-                  className="bg-white rounded-sm shadow-md py-4 px-6 grid grid-cols-3 items-center"
-                >
-                  <div>{course.code}</div>
-                  <div>{course.name}</div>
-                  <div className="flex justify-end items-center gap-2 flex-wrap">
-                    {course.prerequisites.length === 0 ? (
-                      <span className="bg-green-600 text-white px-3 py-1 rounded-md text-sm">N/A</span>
-                    ) : (
-                      <>
-                        <div className="bg-yellow-50 border border-yellow-100 text-yellow-800 px-3 py-1 rounded flex items-center gap-1">
-                          <AlertCircle className="h-4 w-4" />
-                        </div>
-                        {course.prerequisites.map((prereq) => (
-                          <span
-                            key={prereq}
-                            className="bg-[#A31621] text-white px-3 py-1 rounded-md text-sm whitespace-nowrap"
-                          >
-                            {prereq}
-                          </span>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="mt-6 md:mt-0">
+              <CircularProgress
+                currentValue={
+                  progressElectiveMain.completedClasses + (progressElectiveConcentration?.completedClasses || 0)
+                }
+                totalValue={progressElectiveMain.totalClasses + (progressElectiveConcentration?.totalClasses || 0)}
+                size={150}
+                strokeWidth={10}
+                label="Completed"
+                additionalInfo={[
+                  {
+                    label: "Credits",
+                    current:
+                      progressElectiveMain.completedCredits + (progressElectiveConcentration?.completedCredits || 0),
+                    total: progressElectiveMain.totalCredits + (progressElectiveConcentration?.totalCredits || 0),
+                  },
+                  {
+                    label: "Classes",
+                    current:
+                      progressElectiveMain.completedClasses + (progressElectiveConcentration?.completedClasses || 0),
+                    total: progressElectiveMain.totalClasses + (progressElectiveConcentration?.totalClasses || 0),
+                  },
+                ]}
+                className="md:w-[25vw]"
+              />
             </div>
           </div>
-        )}
+          <div className="px-6 pb-6">
+            <DropdownSection
+              title={`${selectedTab} (${degreeTabs[selectedTabIndex]?.type || "Unknown"})`}
+              courses={electiveMainCourses}
+              completedCourseCodes={completedCourseCodes}
+              creditInfo={electiveMainCreditInfo}
+            />
+            {progressElectiveConcentration && shouldShowConcentration && (
+              <DropdownSection
+                title={`${user?.data.additionalDegree?.concentration} (Concentration)`}
+                courses={electiveConcentrationCourses}
+                completedCourseCodes={completedCourseCodes}
+                creditInfo={electiveConcentrationCreditInfo}
+              />
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   )
 }
