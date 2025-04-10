@@ -13,6 +13,7 @@ import CircularProgress from "@/components/circular-progress";
 import { useAuth } from "@/context/AuthContext";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export default function Home() {
   const { user } = useAuth();
@@ -64,9 +65,9 @@ export default function Home() {
     <main>
       {/* Main Header Section */}
       <div className="bg-[url(/mountain-range.jpg)] rounded-2xl mt-5 p-4">
-        <div className="grid grid-cols-2 gap-4 xl:max-w-[80%]">
+        <div className="flex flex-wrap gap-4 xl:max-w-[80%] xl:mx-auto items-center">
           {/* Student Info Card */}
-          <Card className="col-span-full">
+          <Card className="flex-1 min-w-[60%]">
             <CardHeader className="flex flex-col sm:flex-row">
               <div className="flex-1">
                 <CardDescription>Name</CardDescription>
@@ -81,6 +82,7 @@ export default function Home() {
                 </CardTitle>
               </div>
             </CardHeader>
+            <Separator />
             <CardContent className="flex flex-col sm:flex-row">
               <div className="flex-1">
                 <CardDescription>Degree Major</CardDescription>
@@ -105,37 +107,22 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          {/* Credits Status Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-[var(--primary)]">
-                Credits Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row">
-              <div className="flex-1">
-                <CardDescription>Credits Completed</CardDescription>
-                <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  {completedCredits}
-                </p>
-              </div>
-              <div className="flex-1">
-                <CardDescription>Credits Remaining</CardDescription>
-                <p className="text-md pt-1 text-[var(--secondary)] mb-2 sm:mb-0">
-                  {totalCredits - completedCredits}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {totalCredits !== 0 && <CircularProgress
-            currentValue={completedCredits}
-            totalValue={totalCredits}
-            additionalInfo={[
-              { label: "Credits", current: completedCredits, total: totalCredits },
-              { label: "Classes", current: completedClasses, total: requiredClasses },
-            ]}
-          />}
+          {/* Circular Progress */}
+          <div className="  ">
+            {totalCredits !== 0 && (
+              <CircularProgress
+                title="Credits Status"
+                size={150}
+                strokeWidth={10}
+                currentValue={completedCredits}
+                totalValue={totalCredits}
+                additionalInfo={[
+                  { label: "Credits", current: completedCredits, total: totalCredits },
+                  { label: "Classes", current: completedClasses, total: requiredClasses },
+                ]}
+              />
+            )}
+          </div>
         </div>
       </div>
 
