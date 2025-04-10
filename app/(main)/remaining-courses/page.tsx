@@ -177,7 +177,7 @@ export default function RemainingCourses() {
         <div className="rounded-xl rounded-tl-none bg-[#4E8098]">
           <div className="p-6 flex flex-col md:flex-row md:justify-between md:items-center">
             <div className="flex items-center text-white">
-              <h2 className="text-2xl font-bold">Remaining Mandatory Courses</h2>
+              <h2 className="text-2xl font-bold">Mandatory Courses</h2>
               <Tooltip>
                 <TooltipTrigger>
                   <Info size={20} className="ml-2 text-white cursor-help" />
@@ -237,7 +237,7 @@ export default function RemainingCourses() {
 
           <div className="p-6 flex flex-col md:flex-row md:justify-between md:items-center">
             <div className="flex items-center text-white">
-              <h2 className="text-2xl font-bold">Remaining Elective Courses</h2>
+              <h2 className="text-2xl font-bold">Elective Courses</h2>
               <Tooltip>
                 <TooltipTrigger>
                   <Info size={20} className="ml-2 text-white cursor-help" />

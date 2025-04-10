@@ -32,6 +32,7 @@ export interface UserData {
     primaryDegree: Degree
     additionalDegree?: Degree
     completedCourses?: CompletedCourse[]
+    recommendedCourses?: string[]
 }
 
 export interface User {
@@ -556,6 +557,13 @@ export const users: User[] = [
                 creditsRequired: 120,
             },
             completedCourses: [],
+            recommendedCourses: [
+                'CS101',
+                'CS104',
+                'ENG101',
+                'ENG102',
+                'MATH101',
+            ]
         },
     },
     {
@@ -605,6 +613,13 @@ export const users: User[] = [
                 { code: "ML402", term: "Winter 2023", grade: "A-", instructor: "Evelyn Thompson" },
                 { code: "DS204", term: "Fall 2021", grade: "B+", instructor: "David Tran" },
             ],
+            recommendedCourses: [
+                'SE201',
+                'SE202',
+                'SE203',
+                'ENG101',
+                'CS104',
+            ]
         },
     },
     {
@@ -669,6 +684,13 @@ export const users: User[] = [
                 { code: "DS103", term: "Winter 2020", grade: "B+", instructor: "Mia Thomas" },
                 { code: "DS201", term: "Fall 2020", grade: "B", instructor: "Lucas Jackson" },
             ],
+            recommendedCourses: [
+                'SE103',
+                'SE201',
+                'DS202',
+                'DS203',
+                'ENG106',
+            ]
         },
     },
 ]  

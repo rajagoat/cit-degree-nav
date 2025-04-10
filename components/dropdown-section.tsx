@@ -1,7 +1,7 @@
 "use client"
 
 import { type Course, courses as allCourses } from "@/data/mockData"
-import { ChevronRight, ChevronDown } from "lucide-react"
+import { ChevronRight, ChevronDown, X } from "lucide-react"
 import { useState } from "react"
 import { Button } from "./ui/button"
 
@@ -161,19 +161,42 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
                     onClick={closeModal}
                 >
                     <div
-                        className="bg-white p-6 rounded shadow-lg max-w-lg w-full"
+                        className="bg-[#CED3DC] p-6 rounded shadow-lg max-w-lg w-full"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h2 className="text-2xl font-bold mb-4">
-                            {selectedCourse.code}: {selectedCourse.name}
-                        </h2>
-                        <p className="text-gray-700 mb-4">{selectedCourse.description}</p>
-                        <Button
-                            onClick={closeModal}
-                            className="px-4 py-2 bg-red-500 text-white rounded cursor-pointer"
+                        <X className="float-right cursor-pointer" size={40} onClick={closeModal} />
+                        <div
+                            className="text-center p-1 mb-4 w-[80%] mx-auto rounded-md"
                         >
-                            Close
-                        </Button>
+                            <h2 className="text-2xl font-semibold">
+                                {selectedCourse.code}: {selectedCourse.name}
+                            </h2>
+                        </div>
+
+                        <div className="bg-white rounded-md p-2 mb-4">
+                            <p className="font-bold">Description:</p>
+                            <p>{selectedCourse.description}</p>
+                        </div>
+
+                        <div className="bg-white rounded-md p-2 flex gap-2">
+                            <p className="font-bold">Prerequisite(s):</p>
+                            {selectedCourse.prerequisites ? selectedCourse.prerequisites.map((prereq) => {
+                                const isCompleted = isPrerequisiteCompleted(prereq)
+                                return (
+                                    <div
+                                        key={prereq}
+                                        className={`px-3 py-1 rounded-md text-sm whitespace-nowrap text-white ${isCompleted ? "bg-[#008000]" : "bg-[#A31621]"
+                                            }`}
+                                    >
+
+                                        {prereq}
+                                    </div>  
+                                )
+                            }
+                            ) : (
+                                <span className="bg-[#008000] text-white px-3 py-1 rounded-md text-sm">N/A</span>
+                            )}  
+                        </div>  
                     </div>
                 </div>
             )}
