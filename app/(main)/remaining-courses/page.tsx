@@ -1,92 +1,110 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useMemo } from "react"
-import { ChevronRight, ChevronDown, AlertCircle } from "lucide-react"
-import CircularProgress from "@/components/circular-progress"
-import { useAuth } from "@/context/AuthContext"
+import { useState, useMemo } from "react";
+import CircularProgress from "@/components/circular-progress";
+import Tabs from "@/components/tabs";
+import DropdownSection from "@/components/dropdown-section";
+import { useAuth } from "@/context/AuthContext";
+import { degreeRequirements, courses, Course } from "@/data/mockData";
+import { Separator } from "@/components/ui/separator";
 
-interface TabsProps {
-  tabs: Array<"Computer Science" | "Mathematics">
-  selected: "Computer Science" | "Mathematics"
-  onSelect: (tab: "Computer Science" | "Mathematics") => void
-}
+const RemainingCourses: React.FC = () => {
+  const { user } = useAuth();
 
-const Tabs: React.FC<TabsProps> = ({ tabs, selected, onSelect }) => (
-  <div className="flex">
-    {tabs.map((tab) => (
-      <div
-        key={tab}
-        onClick={() => onSelect(tab)}
-        className={`px-4 py-2 cursor-pointer rounded-t-lg font-semibold text-sm ${tab === selected
-          ? "bg-[#A31621] text-white border-[#a51c30]"
-          : "bg-white border-1 text-[#808080]"
-          }`}
-      >
-        {tab}
-      </div>
-    ))}
-  </div>
-)
-
-const coursesData = {
-  "Computer Science": [
-    { code: "CS 101", name: "Introduction to Programming", prerequisites: [] },
-    { code: "CS 201", name: "Data Structures", prerequisites: ["CS 101"] },
-    { code: "CS 301", name: "Algorithms", prerequisites: ["CS 201"] },
-    { code: "CS 401", name: "Machine Learning", prerequisites: ["CS 301", "MATH 301"] },
-  ],
-  Mathematics: [
-    { code: "MATH 322", name: "Advanced Math Techniques I", prerequisites: [] },
-    { code: "MATH 389", name: "Aerospace Mathematics I", prerequisites: [] },
-    { code: "MATH 489", name: "Advanced Aerospace Mathematics II", prerequisites: ["MATH 389"] },
-    { code: "MATH 512", name: "Machine Learning in Math", prerequisites: ["MATH 389", "MATH 479"] },
-  ],
-}
-
-export default function RemainingCourses() {
-  const { user } = useAuth()
-
+  // Compute credits and classes overall
   const totalCredits = useMemo(() => {
-    const primary = user?.data.primaryDegree?.creditsRequired || 0
-    const secondary = user?.data.additionalDegree?.creditsRequired || 0
-    return primary + secondary
-  }, [user])
+    const primary = user?.data.primaryDegree?.creditsRequired || 0;
+    const secondary = user?.data.additionalDegree?.creditsRequired || 0;
+    return primary + secondary;
+  }, [user]);
 
   const completedCredits = useMemo(() => {
-    const primary = user?.data.primaryDegree?.creditsCompleted || 0
-    const secondary = user?.data.additionalDegree?.creditsCompleted || 0
-    return primary + secondary
-  }, [user])
+    const primary = user?.data.primaryDegree?.creditsCompleted || 0;
+    const secondary = user?.data.additionalDegree?.creditsCompleted || 0;
+    return primary + secondary;
+  }, [user]);
 
-  const completedClasses = Math.floor(completedCredits / 3)
-  const requiredClasses = Math.floor(totalCredits / 3)
+  const completedClasses = Math.floor(completedCredits / 3);
+  const requiredClasses = Math.floor(totalCredits / 3);
 
-  const [selectedTab, setSelectedTab] = useState<"Computer Science" | "Mathematics">("Computer Science")
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const courses = coursesData[selectedTab]
+  // Build dynamic tabs based on the user's degrees. For dual degrees, each degree has its own tab.
+  const degreeTabs: { title: string; type: "Major" | "Minor" | "Concentration"; degreeData: any }[] = [];
+  if (user) {
+    if (user.data.primaryDegree) {
+      degreeTabs.push({
+        title: user.data.primaryDegree.name,
+        type: "Major",
+        degreeData: user.data.primaryDegree,
+      });
+    }
+    if (user.data.additionalDegree) {
+      degreeTabs.push({
+        title: user.data.additionalDegree.name,
+        type: user.data.additionalDegree.type || "Major",
+        degreeData: user.data.additionalDegree,
+      });
+    }
+  }
+
+  const [selectedTabIndex, setSelectedTabIndex] = useState<number>(0);
+  const selectedTab = degreeTabs[selectedTabIndex]?.title || "";
+
+  // Get completed course codes for the current degree (if available)
+  const completedCourseCodes = user?.data.completedCourses
+    ? user.data.completedCourses.map((cc) => cc.code)
+    : [];
+
+  // Get the degree requirements for the selected degree stream.
+  // For majors, the requirements are stored by the degree name.
+  const mainReq = degreeRequirements[selectedTab] || { required: [], electives: [] };
+
+  // Also, if the user's additionalDegree contains a concentration, grab its requirements.
+  // We assume that if the concentration exists, the degreeRequirements are keyed by the concentration name.
+  const concentrationReq =
+    user?.data.additionalDegree && user.data.additionalDegree.concentration
+      ? degreeRequirements[user.data.additionalDegree.concentration]
+      : null;
+
+  // Helper function to get full course objects based on codes.
+  const getCoursesForCodes = (codes: string[]): Course[] =>
+    codes.map((code) => {
+      const found = courses.find((c) => c.code.trim().toLowerCase() === code.trim().toLowerCase());
+      return found || { code, name: code, description: "No description", prerequisites: [] };
+    });
+
+  // Build course arrays for the current selected tab.
+  const mandatoryMainCourses = getCoursesForCodes(mainReq.required);
+  const electiveMainCourses = getCoursesForCodes(mainReq.electives);
+
+  // For concentration, if applicable (only applies if the currently selected degree is an additional degree and has a concentration)
+  const mandatoryConcentrationCourses =
+    concentrationReq && degreeTabs[selectedTabIndex].type === "Major"
+      ? getCoursesForCodes(concentrationReq.required)
+      : [];
+  const electiveConcentrationCourses =
+    concentrationReq && degreeTabs[selectedTabIndex].type === "Major"
+      ? getCoursesForCodes(concentrationReq.electives)
+      : [];
 
   return (
-    <div className="mt-5">
-      {/* Tabs */}
+    <div className="mt-5 mb-3">
+      {/* Dynamic Tabs */}
       <Tabs
-        tabs={["Computer Science", "Mathematics"]}
+        tabs={degreeTabs.map((dt) => dt.title)}
         selected={selectedTab}
         onSelect={(tab) => {
-          setSelectedTab(tab)
-          setDropdownOpen(false)
+          const idx = degreeTabs.findIndex((d) => d.title === tab);
+          setSelectedTabIndex(idx);
         }}
       />
 
-      {/* Main Container */}
-      <div className="rounded-xl rounded-tl-none bg-[#4a768a]">
-        {/* Header Section */}
+      {/* Main Container for Mandatory Courses */}
+      <div className="rounded-xl rounded-tl-none bg-[#4E8098]">
         <div className="p-6 flex flex-col md:flex-row md:justify-between md:items-center">
-          {/* Left Section: Mandatory Courses heading */}
           <div className="text-white">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5 xl font-semibold">Mandatory Courses</h2>
+            <h2 className="text-2xl font-bold">Mandatory Courses</h2>
+            {/* Removed extraneous "Degree Stream" text */}
           </div>
-          {/* Right Section: Progress Bar */}
           {totalCredits > 0 && (
             <div className="mt-6 md:mt-0">
               <CircularProgress
@@ -104,61 +122,61 @@ export default function RemainingCourses() {
             </div>
           )}
         </div>
-        {/* Dropdown Toggle (placed separately above the content) */}
-        <div className={`text-white pl-5 ${!dropdownOpen && 'pb-6'}`}>
-          <button
-            onClick={() => setDropdownOpen((prev) => !prev)}
-            className="text-lg md:text-2xl lg:text-3xl font-semibold focus:outline-none flex items-center cursor-pointer"
-          >
-            {dropdownOpen ? (
-              <ChevronDown className="mr-2" size={28} />
-            ) : (
-              <ChevronRight className="mr-2" size={28} />
-            )}
-            <span>{selectedTab} (Major)</span>
-          </button>
+        <div className="px-6">
+          <DropdownSection
+            title={`${selectedTab} (${degreeTabs[selectedTabIndex]?.type || "Unknown"})`}
+            courses={mandatoryMainCourses}
+            completedCourseCodes={completedCourseCodes}
+          />
+          {concentrationReq && degreeTabs[selectedTabIndex].type === "Major" && (
+            <DropdownSection
+              title={`${user?.data.additionalDegree?.concentration} (Concentration)`}
+              courses={mandatoryConcentrationCourses}
+              completedCourseCodes={completedCourseCodes}
+            />
+          )}
         </div>
-        {/* Dropdown Content */}
-        {dropdownOpen && (
-          <div className="px-6 pb-6">
-            <div className="grid grid-cols-3 text-white font-medium py-3 px-4">
-              <div>Course #</div>
-              <div>Course Name</div>
-              <div className="text-right">Prerequisite(s)</div>
-            </div>
-            <div className="space-y-3">
-              {courses.map((course, index) => (
-                <div
-                  key={index}
-                  className="bg-white rounded-sm shadow-md py-4 px-6 grid grid-cols-3 items-center"
-                >
-                  <div>{course.code}</div>
-                  <div>{course.name}</div>
-                  <div className="flex justify-end items-center gap-2 flex-wrap">
-                    {course.prerequisites.length === 0 ? (
-                      <span className="bg-green-600 text-white px-3 py-1 rounded-md text-sm">N/A</span>
-                    ) : (
-                      <>
-                        <div className="bg-yellow-50 border border-yellow-100 text-yellow-800 px-3 py-1 rounded flex items-center gap-1">
-                          <AlertCircle className="h-4 w-4" />
-                        </div>
-                        {course.prerequisites.map((prereq) => (
-                          <span
-                            key={prereq}
-                            className="bg-[#A31621] text-white px-3 py-1 rounded-md text-sm whitespace-nowrap"
-                          >
-                            {prereq}
-                          </span>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+
+        <Separator />
+
+        <div className="p-6 flex flex-col md:flex-row md:justify-between md:items-center">
+          <div className="text-white">
+            <h2 className="text-2xl font-bold">Elective Courses</h2>
           </div>
-        )}
+          {totalCredits > 0 && (
+            <div className="mt-6 md:mt-0">
+              <CircularProgress
+                currentValue={completedCredits}
+                totalValue={totalCredits}
+                size={150}
+                strokeWidth={10}
+                label="Complete"
+                additionalInfo={[
+                  { label: "Credits", current: completedCredits, total: totalCredits },
+                  { label: "Classes", current: completedClasses, total: requiredClasses },
+                ]}
+                className="md:w-[25vw]"
+              />
+            </div>
+          )}
+        </div>
+        <div className="px-6">
+          <DropdownSection
+            title={`${selectedTab} (${degreeTabs[selectedTabIndex]?.type || "Unknown"})`}
+            courses={electiveMainCourses}
+            completedCourseCodes={completedCourseCodes}
+          />
+          {concentrationReq && degreeTabs[selectedTabIndex].type === "Major" && (
+            <DropdownSection
+              title={`${user?.data.additionalDegree?.concentration} (Concentration)`}
+              courses={electiveConcentrationCourses}
+              completedCourseCodes={completedCourseCodes}
+            />
+          )}
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default RemainingCourses;
