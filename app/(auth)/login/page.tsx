@@ -26,7 +26,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function Login() {
-    const { login } = useAuth();
+    const { login } = useAuth()
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
 
@@ -44,9 +44,9 @@ export default function Login() {
         setIsLoading(true)
 
         try {
-            const authenticatedUser = login(data.email, data.password);
+            const authenticatedUser = login(data.email, data.password)
             if (!authenticatedUser) {
-                throw new Error("Login Failed");
+                throw new Error("Login Failed")
             }
 
             toast.success("Login successful", {
@@ -73,16 +73,18 @@ export default function Login() {
     }
 
     return (
-        <div className="flex min-h-screen w-full items-center justify-center bg-[#A31621] py-8">
-            <div className="container mx-auto max-w-6xl">
-                <div className="overflow-hidden shadow-xl">
-                    <div className="grid lg:grid-cols-2 lg:h-[85vh]">
+        <div className="flex min-h-screen w-full bg-[#A31621] items-center justify-center">
+            <div className="container mx-auto max-w-6xl h-full lg:h-auto">
+                <div className="overflow-hidden shadow-xl h-full lg:h-auto">
+                    <div className="grid lg:grid-cols-2 h-full lg:h-auto">
                         {/* Left Column - Login Form */}
-                        <div className="flex flex-col items-center justify-center bg-[#4E8098] px-8 py-12 text-white">
+                        <div className="flex flex-col items-center justify-center bg-[#4E8098] px-4 py-8 text-white sm:px-6 md:px-8 h-full lg:h-auto">
                             <div className="mx-auto w-full max-w-md">
-                                {/* Logo */}
-                                <div className="mb-8 flex justify-center">
-                                    <div className="relative aspect-square w-64 overflow-hidden rounded-full border-white/20">
+                                {/* Logo - height-based responsive sizing */}
+                                <div className="mb-4 sm:mb-6 flex justify-center">
+                                    <div
+                                        className="relative aspect-square overflow-hidden rounded-full border-white/20"
+                                    >
                                         <Image
                                             src={CitLogo}
                                             alt="CIT Logo"
@@ -92,21 +94,21 @@ export default function Login() {
                                     </div>
                                 </div>
 
-                                {/* Login Form */}
-                                <div className="space-y-8">
-                                    <div className="space-y-2">
-                                        <h1 className="text-5xl font-bold tracking-tight">Login</h1>
-                                        <p className="text-lg text-white/90">Enter your account details</p>
+                                {/* Login Form - with responsive spacing */}
+                                <div className="space-y-4 sm:space-y-6">
+                                    <div className="space-y-1 sm:space-y-2">
+                                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">Login</h1>
+                                        <p className="text-base sm:text-lg text-white/90">Enter your account details</p>
                                     </div>
 
-                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
                                         <div className="space-y-1">
                                             <p className="text-sm font-medium">CIT Email</p>
                                             <Input
                                                 id="email"
                                                 type="email"
                                                 placeholder=""
-                                                className="border-0 border-b border-white/50 bg-transparent px-2 text-white placeholder:text-white/50 focus:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                className="h-10 border-0 border-b border-white/50 bg-transparent px-2 text-white placeholder:text-white/50 focus:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
                                                 {...form.register("email")}
                                             />
                                             {form.formState.errors.email && (
@@ -119,7 +121,7 @@ export default function Login() {
                                             <Input
                                                 id="password"
                                                 type="password"
-                                                className="border-0 border-b border-white/50 bg-transparent px-2 text-white placeholder:text-white/50 focus:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                className="h-10 border-0 border-b border-white/50 bg-transparent px-2 text-white placeholder:text-white/50 focus:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
                                                 {...form.register("password")}
                                             />
                                             {form.formState.errors.password && (
@@ -135,16 +137,20 @@ export default function Login() {
 
                                         <Button
                                             type="submit"
-                                            className="w-full bg-gray-200/90 text-gray-800 hover:bg-white"
+                                            className="h-10 w-full bg-gray-200/90 text-gray-800 hover:bg-white"
                                             disabled={isLoading}
                                         >
                                             {isLoading ? "Logging in..." : "Login"}
                                         </Button>
                                     </form>
 
-                                    <div className="flex items-center justify-between pt-4">
+                                    <div className="flex items-center justify-between pt-2 sm:pt-4">
                                         <span className="text-sm text-white/90">Don&apos;t have an account?</span>
-                                        <Button variant="secondary" className="bg-gray-600/50 text-white hover:bg-gray-600" asChild>
+                                        <Button
+                                            variant="secondary"
+                                            className="h-8 bg-gray-600/50 text-white hover:bg-gray-600 px-3"
+                                            asChild
+                                        >
                                             <Link href="/signup">Sign Up</Link>
                                         </Button>
                                     </div>
@@ -158,8 +164,7 @@ export default function Login() {
                                 <Image
                                     src={LoginImage}
                                     alt="Calgary Institute of Technology Campus"
-                                    width={1000}
-                                    height={800}
+                                    fill
                                     className="h-full w-full object-cover"
                                     priority
                                 />

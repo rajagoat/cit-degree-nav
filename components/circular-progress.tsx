@@ -18,6 +18,7 @@ interface CircularProgressProps {
   }[]
   className?: string
   animationDuration?: number
+  title?: string
 }
 
 export default function CircularProgress({
@@ -31,6 +32,7 @@ export default function CircularProgress({
   additionalInfo = [],
   className = "",
   animationDuration = 1.5,
+  title = ""
 }: CircularProgressProps) {
   const [percentage, setPercentage] = useState(0)
 
@@ -56,8 +58,12 @@ export default function CircularProgress({
 
   return (
     <div
-      className={`flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 md:p-6 shadow-sm ${className}`}
+      className={`flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 md:p-6 shadow-sm justify-center ${className}`}
     >
+      <div className="text-xl font-semibold text-[var(--primary)] mb-4 sm:mb-6 md:mb-7">
+        {title}
+      </div>
+
       {/* Small screens (mobile) */}
       <div className="relative block sm:hidden" style={{ width: size * 0.7, height: size * 0.7 }}>
         <svg
