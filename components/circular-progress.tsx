@@ -21,6 +21,8 @@ interface CircularProgressProps {
   title?: string
 }
 
+//AI was used to generate the majority of this code and was modified by a group member to fit the needs of the project.
+
 export default function CircularProgress({
   currentValue,
   totalValue,
