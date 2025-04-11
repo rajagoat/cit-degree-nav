@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
+//AI was used to generate the majority of this code and was modified by a group memeber to fit the needs of the project.
+
 export default function Home() {
   const { user } = useAuth();
 

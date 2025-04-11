@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { courses } from "@/data/mockData";
 
+
+//AI was used to generate the majority of this code and was modified by a group memeber to fit the needs of the project.
 interface CourseData {
   courseNumber: string;
   courseName: string;
