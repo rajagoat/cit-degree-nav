@@ -101,7 +101,7 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
                 {creditInfo && (
                     <div className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full text-white">{creditInfo}</div>
                 )}
-                {open && <Button variant="outline" size="sm" onClick={() => setFilterModalOpen(true)}>
+                {open && allCourseTypes.length > 0 && <Button variant="outline" size="sm" onClick={() => setFilterModalOpen(true)}>
                     <Filter className="mr-2" size={16} />
                     Filter
                 </Button>}
@@ -182,7 +182,11 @@ export default function DropdownSection({ title, courses, completedCourseCodes, 
                         </div>
                     ) : (
                         <div className="bg-green-100 text-green-800 rounded-sm shadow-md py-6 px-6 text-center">
-                            <p className="font-medium">No courses match the selected filters.</p>
+                            {allCourseTypes.length > 0 ? (
+                                <p className="font-medium">No courses match the selected filters.</p>
+                            ) : (
+                                <p className="font-medium">All courses in this section are complete! 🎉</p>
+                            )}
                         </div>
                     )}
 
